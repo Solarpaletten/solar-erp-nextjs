@@ -170,14 +170,14 @@ export default function CompactClientsTable() {
       setError('Название и email обязательны')
       return
     }
-    
+
     try {
-      const url = editingClient 
+      const url = editingClient
         ? `/api/company/${companyId}/clients/${editingClient.id}`
         : `/api/company/${companyId}/clients`
-      
+
       const method = editingClient ? 'PUT' : 'POST'
-      
+
       // 🔧 Очищаем пустые числовые поля
       const cleanedData = {
         ...formData,
@@ -185,13 +185,13 @@ export default function CompactClientsTable() {
         vat_rate: formData.vat_rate ? parseFloat(formData.vat_rate) : null, // ✅ Исправлено
         credit_sum: formData.credit_sum ? parseFloat(formData.credit_sum) : 0,
       }
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanedData)
       })
-  
+
       if (response.ok) {
         fetchClients()
         setShowForm(false)
@@ -208,30 +208,39 @@ export default function CompactClientsTable() {
   }
 
   const handleCopy = async (client: Client) => {
-    const timestamp = Date.now()
-    const random = Math.floor(Math.random() * 1000)
-    const baseCode = client.code?.split('_COPY_')[0] || ''
-    const baseName = client.name?.replace(/ Copy( \d+)?$/, '') || ''
-
-    const copiedData = {
-      ...formData,
-      name: `${baseName} Copy ${random}`,
-      code: baseCode ? `${baseCode}_COPY_${random}` : '',
-      email: `copy_${timestamp}_${random}_${client.email}`,
-      abbreviation: client.abbreviation ? `${client.abbreviation} Copy` : '',
-      phone: client.phone,
-      fax: client.fax,
-      website: client.website,
-      vat_code: client.vat_code ? `${client.vat_code}_COPY_${random}` : '',
-      role: client.role,
-      currency: client.currency,
-      country: client.country,
-      is_active: client.is_active,
-      is_juridical: client.is_juridical,
-      is_foreigner: client.is_foreigner
-    }
-
     try {
+      // Находим максимальный номер копии для этого клиента
+      const baseName = client.name?.replace(/ Copy \d+$/, '') || client.name || ''
+      const copyClients = clients.filter(c => 
+        c.name?.startsWith(baseName) && c.name?.includes('Copy')
+      )
+      
+      // Извлекаем номера копий и находим максимальный
+      const copyNumbers = copyClients.map(c => {
+        const match = c.name?.match(/Copy (\d+)$/)
+        return match ? parseInt(match[1]) : 0
+      }).filter(num => num > 0)
+      
+      const nextCopyNumber = copyNumbers.length > 0 ? Math.max(...copyNumbers) + 1 : 1
+      
+      const copiedData = {
+        ...formData,
+        name: `${baseName} Copy ${nextCopyNumber}`,
+        code: `copy${nextCopyNumber}`, // Простой код: copy1, copy2, copy3...
+        email: `copy${nextCopyNumber}_${client.email}`,
+        abbreviation: client.abbreviation ? `${client.abbreviation} Copy` : '',
+        phone: client.phone,
+        fax: client.fax,
+        website: client.website,
+        vat_code: client.vat_code ? `${client.vat_code}_copy${nextCopyNumber}` : '',
+        role: client.role,
+        currency: client.currency,
+        country: client.country,
+        is_active: client.is_active,
+        is_juridical: client.is_juridical,
+        is_foreigner: client.is_foreigner
+      }
+  
       const response = await fetch(`/api/company/${companyId}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -240,7 +249,7 @@ export default function CompactClientsTable() {
           company_id: parseInt(companyId)
         })
       })
-
+  
       if (response.ok) {
         fetchClients()
       } else {
@@ -252,15 +261,19 @@ export default function CompactClientsTable() {
   }
 
   const handleDelete = async (clientId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этого клиента?')) return
-
     try {
       const response = await fetch(`/api/company/${companyId}/clients/${clientId}`, {
         method: 'DELETE'
       })
 
       if (response.ok) {
-        fetchClients()
+        // ✅ Обновляем список только после успешного удаления
+        setClients(prev => prev.filter(c => c.id !== clientId))
+        setSelectedClients(prev => prev.filter(id => id !== clientId))
+      } else if (response.status === 404) {
+        // ✅ Клиент уже удален - просто убираем из UI
+        setClients(prev => prev.filter(c => c.id !== clientId))
+        setSelectedClients(prev => prev.filter(id => id !== clientId))
       } else {
         setError('Не удалось удалить клиента')
       }
@@ -411,11 +424,20 @@ export default function CompactClientsTable() {
             </button>
 
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (selectedClients.length > 0) {
                   const confirmMsg = `Удалить ${selectedClients.length} клиент(ов)?`
                   if (confirm(confirmMsg)) {
-                    selectedClients.forEach(id => handleDelete(id))
+                    // ✅ Последовательное удаление вместо параллельного
+                    for (const clientId of selectedClients) {
+                      try {
+                        await handleDelete(clientId)
+                      } catch (error) {
+                        console.error(`Failed to delete client ${clientId}:`, error)
+                      }
+                    }
+                    // Очищаем выбор после удаления
+                    setSelectedClients([])
                   }
                 }
               }}
@@ -438,8 +460,8 @@ export default function CompactClientsTable() {
               }}
               disabled={selectedClients.length !== 1}  // ✅ Активно только для 1
               className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length === 1
-                  ? 'bg-gray-500 hover:bg-gray-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               title="Копировать"
             >
