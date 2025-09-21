@@ -6,7 +6,7 @@ export default async function DashboardLayout({
   params
 }: {
   children: React.ReactNode
-  params: { companyId: string }
+  params: Promise<{ companyId: string }> // Изменено на Promise
 }) {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')
@@ -14,6 +14,9 @@ export default async function DashboardLayout({
   if (!token) {
     redirect('/login')
   }
+
+  // Если нужно использовать companyId, добавьте:
+  // const { companyId } = await params
 
   return (
     <div className="min-h-screen bg-gray-50">

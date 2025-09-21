@@ -45,6 +45,7 @@
     "eslint-config-next": "15.5.3",
     "@tailwindcss/typography": "^0.5.10",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "eslint": "^9"
   }
 }

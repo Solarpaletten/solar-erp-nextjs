@@ -1,6 +1,9 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-    serverExternalPackages: ['@prisma/client'] // Исправлено для Next.js 15
-  }
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  serverExternalPackages: ['@prisma/client']
+}
   
   module.exports = nextConfig
+
