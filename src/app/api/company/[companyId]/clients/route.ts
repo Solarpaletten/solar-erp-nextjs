@@ -44,13 +44,18 @@ export async function GET(
 
   } catch (error) {
     console.error('=== CLIENTS API GET ERROR ===')
-    console.error('Error type:', error.constructor.name)
-    console.error('Error message:', error.message)
-    console.error('Full error:', error)
     
-    return NextResponse.json({ 
-      success: false, 
-      error: `Failed to load clients: ${error.message}` 
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+      console.error('Full error:', error)
+    } else {
+      console.error('Unknown error:', error)
+    }
+  
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch clients'
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()
