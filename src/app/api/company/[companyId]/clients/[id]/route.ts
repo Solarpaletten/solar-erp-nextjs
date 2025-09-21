@@ -10,15 +10,15 @@ export async function GET(
 ) {
   try {
     console.log('=== CLIENT GET BY ID START ===')
-    
+
     const { companyId, id } = await context.params
     const company_id = parseInt(companyId)
     const client_id = parseInt(id)
 
     if (isNaN(company_id) || isNaN(client_id)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid IDs provided' 
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid IDs provided'
       }, { status: 400 })
     }
 
@@ -27,33 +27,33 @@ export async function GET(
     await prisma.$connect()
 
     const client = await prisma.clients.findFirst({
-      where: { 
+      where: {
         id: client_id,
-        company_id: company_id 
+        company_id: company_id
       }
     })
 
     if (!client) {
       console.log('Client not found')
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Client not found' 
+      return NextResponse.json({
+        success: false,
+        error: 'Client not found'
       }, { status: 404 })
     }
 
     console.log('Client found:', client.name)
 
-    return NextResponse.json({ 
-      success: true, 
-      client 
+    return NextResponse.json({
+      success: true,
+      client
     })
 
   } catch (error) {
     console.error('=== CLIENT GET BY ID ERROR ===')
     console.error('Error:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Internal Server Error' 
+    return NextResponse.json({
+      success: false,
+      error: 'Internal Server Error'
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()
@@ -66,15 +66,15 @@ export async function PUT(
 ) {
   try {
     console.log('=== CLIENT UPDATE START ===')
-    
+
     const { companyId, id } = await context.params
     const company_id = parseInt(companyId)
     const client_id = parseInt(id)
 
     if (isNaN(company_id) || isNaN(client_id)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid IDs provided' 
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid IDs provided'
       }, { status: 400 })
     }
 
@@ -85,45 +85,45 @@ export async function PUT(
 
     // Проверить что клиент принадлежит компании
     const existingClient = await prisma.clients.findFirst({
-      where: { 
+      where: {
         id: client_id,
-        company_id: company_id 
+        company_id: company_id
       }
     })
 
     if (!existingClient) {
       console.log('Client not found or access denied')
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Client not found' 
+      return NextResponse.json({
+        success: false,
+        error: 'Client not found'
       }, { status: 404 })
     }
 
     // Подготовить данные для обновления (только переданные поля)
-    const updateData = {}
-    
+    const updateData: any = {}
+
     // Основные поля
     if (data['name'] !== undefined) updateData.name = data['name']
-    if (data.email !== undefined) updateData.email = data.email
-    if (data.abbreviation !== undefined) updateData.abbreviation = data.abbreviation
-    if (data.code !== undefined) updateData.code = data.code
-    if (data.phone !== undefined) updateData.phone = data.phone
-    if (data.fax !== undefined) updateData.fax = data.fax
-    if (data.website !== undefined) updateData.website = data.website
-    if (data.contact_information !== undefined) updateData.contact_information = data.contact_information
-    
+    if (data['email'] !== undefined) updateData.email = data['email']
+    if (data['abbreviation'] !== undefined) updateData.abbreviation = data['abbreviation']
+    if (data['code'] !== undefined) updateData.code = data['code']
+    if (data['phone'] !== undefined) updateData.phone = data['phone']
+    if (data['fax'] !== undefined) updateData.fax = data['fax']
+    if (data['website'] !== undefined) updateData.website = data['website']
+    if (data['contact_information'] !== undefined) updateData.contact_information = data['contact_information']
+
     // Enum и boolean поля
     if (data.role !== undefined) updateData.role = data.role
     if (data.is_juridical !== undefined) updateData.is_juridical = data.is_juridical
     if (data.is_active !== undefined) updateData.is_active = data.is_active
     if (data.is_foreigner !== undefined) updateData.is_foreigner = data.is_foreigner
     if (data.currency !== undefined) updateData.currency = data.currency
-    
+
     // Адреса
     if (data.country !== undefined) updateData.country = data.country
     if (data.legal_address !== undefined) updateData.legal_address = data.legal_address
     if (data.actual_address !== undefined) updateData.actual_address = data.actual_address
-    
+
     // Документы и коды
     if (data.business_license_code !== undefined) updateData.business_license_code = data.business_license_code
     if (data.vat_code !== undefined) updateData.vat_code = data.vat_code
@@ -131,21 +131,21 @@ export async function PUT(
     if (data.eori_code !== undefined) updateData.eori_code = data.eori_code
     if (data.foreign_taxpayer_code !== undefined) updateData.foreign_taxpayer_code = data.foreign_taxpayer_code
     if (data.registration_number !== undefined) updateData.registration_number = data.registration_number
-    
+
     // Финансовые поля
     if (data.credit_sum !== undefined) updateData.credit_sum = data.credit_sum
     if (data.pay_per !== undefined) updateData.pay_per = data.pay_per
     if (data.payment_terms !== undefined) updateData.payment_terms = data.payment_terms
     if (data.automatic_debt_reminder !== undefined) updateData.automatic_debt_reminder = data.automatic_debt_reminder
-    
+
     // Даты
     if (data.registration_date !== undefined) updateData.registration_date = data.registration_date ? new Date(data.registration_date) : null
     if (data.date_of_birth !== undefined) updateData.date_of_birth = data.date_of_birth ? new Date(data.date_of_birth) : null
-    
+
     // SABIS поля
     if (data.sabis_customer_name !== undefined) updateData.sabis_customer_name = data.sabis_customer_name
     if (data.sabis_customer_code !== undefined) updateData.sabis_customer_code = data.sabis_customer_code
-    
+
     // Дополнительная информация
     if (data.additional_information !== undefined) updateData.additional_information = data.additional_information
     if (data.notes !== undefined) updateData.notes = data.notes
@@ -160,9 +160,9 @@ export async function PUT(
 
     console.log('Client updated successfully')
 
-    return NextResponse.json({ 
-      success: true, 
-      client: updatedClient 
+    return NextResponse.json({
+      success: true,
+      client: updatedClient
     })
 
   } catch (error) {
@@ -170,18 +170,18 @@ export async function PUT(
     console.error('Error type:', error.constructor.name)
     console.error('Error message:', error.message)
     console.error('Error code:', error.code)
-    
+
     if (error.code === 'P2002') {
       const field = error.meta?.target?.[0] || 'field'
-      return NextResponse.json({ 
-        success: false, 
-        error: `Client with this ${field} already exists` 
+      return NextResponse.json({
+        success: false,
+        error: `Client with this ${field} already exists`
       }, { status: 409 })
     }
 
-    return NextResponse.json({ 
-      success: false, 
-      error: `Failed to update client: ${error.message}` 
+    return NextResponse.json({
+      success: false,
+      error: `Failed to update client: ${error.message}`
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()
@@ -194,15 +194,15 @@ export async function DELETE(
 ) {
   try {
     console.log('=== CLIENT DELETE START ===')
-    
+
     const { companyId, id } = await context.params
     const company_id = parseInt(companyId)
     const client_id = parseInt(id)
 
     if (isNaN(company_id) || isNaN(client_id)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid IDs provided' 
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid IDs provided'
       }, { status: 400 })
     }
 
@@ -212,17 +212,17 @@ export async function DELETE(
 
     // Проверить что клиент принадлежит компании
     const existingClient = await prisma.clients.findFirst({
-      where: { 
+      where: {
         id: client_id,
-        company_id: company_id 
+        company_id: company_id
       }
     })
 
     if (!existingClient) {
       console.log('Client not found or access denied')
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Client not found' 
+      return NextResponse.json({
+        success: false,
+        error: 'Client not found'
       }, { status: 404 })
     }
 
@@ -233,18 +233,18 @@ export async function DELETE(
 
     console.log('Client deleted successfully')
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Client deleted successfully' 
+      message: 'Client deleted successfully'
     })
 
   } catch (error) {
     console.error('=== CLIENT DELETE ERROR ===')
     console.error('Error:', error)
-    
-    return NextResponse.json({ 
-      success: false, 
-      error: `Failed to delete client: ${error.message}` 
+
+    return NextResponse.json({
+      success: false,
+      error: `Failed to delete client: ${error.message}`
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()
