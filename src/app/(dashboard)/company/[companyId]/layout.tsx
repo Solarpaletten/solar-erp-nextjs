@@ -10,7 +10,7 @@ export default async function Layout({
   const { companyId } = await params
   
   return (
-    <CompanyLayout companyId={companyId}>
+    <CompanyLayout>
       {children}
     </CompanyLayout>
   )
