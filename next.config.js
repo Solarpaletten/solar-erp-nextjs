@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    experimental: {
-      serverComponentsExternalPackages: ['@prisma/client']
-    }
+    serverExternalPackages: ['@prisma/client'] // Исправлено для Next.js 15
   }
   
   module.exports = nextConfig
