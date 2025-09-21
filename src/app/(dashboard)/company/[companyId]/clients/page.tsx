@@ -170,23 +170,28 @@ export default function CompactClientsTable() {
       setError('Название и email обязательны')
       return
     }
-
+    
     try {
-      const url = editingClient
+      const url = editingClient 
         ? `/api/company/${companyId}/clients/${editingClient.id}`
         : `/api/company/${companyId}/clients`
-
+      
       const method = editingClient ? 'PUT' : 'POST'
-
+      
+      // 🔧 Очищаем пустые числовые поля
+      const cleanedData = {
+        ...formData,
+        company_id: parseInt(companyId),
+        vat_rate: formData.vat_rate ? parseFloat(formData.vat_rate) : null, // ✅ Исправлено
+        credit_sum: formData.credit_sum ? parseFloat(formData.credit_sum) : 0,
+      }
+      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          company_id: parseInt(companyId)
-        })
+        body: JSON.stringify(cleanedData)
       })
-
+  
       if (response.ok) {
         fetchClients()
         setShowForm(false)
@@ -426,13 +431,13 @@ export default function CompactClientsTable() {
 
             <button
               onClick={() => {
-                selectedClients.forEach(id => {
-                  const client = clients.find(c => c.id === id)
+                if (selectedClients.length === 1) {  // ✅ Только 1 клиент
+                  const client = clients.find(c => c.id === selectedClients[0])
                   if (client) handleCopy(client)
-                })
+                }
               }}
-              disabled={selectedClients.length === 0}
-              className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length > 0
+              disabled={selectedClients.length !== 1}  // ✅ Активно только для 1
+              className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length === 1
                   ? 'bg-gray-500 hover:bg-gray-600 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
