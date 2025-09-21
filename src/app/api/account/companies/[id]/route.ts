@@ -6,11 +6,11 @@ const prisma = new PrismaClient()
 // PUT - Обновление компании
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // Promise!
 ) {
   try {
-    const companyId = parseInt(params.id)
-    const { name, code, description } = await request.json()
+    const { id } = await params  // await!
+    const companyId = parseInt(id)
 
     console.log('Updating company:', companyId, { name, code, description })
 
@@ -45,16 +45,11 @@ export async function PUT(
 // DELETE - Удаление компании
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const companyId = parseInt(params.id)
-    
-    console.log('Deleting company:', companyId)
-
-    await prisma.companies.delete({
-      where: { id: companyId }
-    })
+    const { id } = await params
+    const companyId = parseInt(id)
 
     console.log('Company deleted successfully')
 
@@ -77,10 +72,11 @@ export async function DELETE(
 // GET - Получение одной компании (опционально)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const companyId = parseInt(params.id)
+    const { id } = await params
+    const companyId = parseInt(id)
 
     const company = await prisma.companies.findUnique({
       where: { id: companyId }

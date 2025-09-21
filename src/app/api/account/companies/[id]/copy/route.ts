@@ -9,65 +9,58 @@ const prisma = new PrismaClient()
 // Функция генерации уникального кода компании
 async function generateUniqueCode(originalCode: string): Promise<string> {
   const baseCode = originalCode.split('_COPY_')[0]
-  
+
   let counter = 1
   let newCode = `${baseCode}_COPY_${Math.floor(Math.random() * 1000)}`
-  
+
   while (counter < 50) {
     const existing = await prisma.companies.findFirst({
       where: { code: newCode }
     })
-    
+
     if (!existing) {
       return newCode
     }
-    
+
     counter++
     newCode = `${baseCode}_COPY_${Math.floor(Math.random() * 1000)}_${counter}`
   }
-  
+
   return `${baseCode}_COPY_${Date.now()}`
 }
 
 // Функция генерации уникального названия компании
 async function generateUniqueName(originalName: string): Promise<string> {
   const baseName = originalName.replace(/ Copy( \d+)?$/, '')
-  
+
   let counter = 1
   let newName = `${baseName} Copy`
-  
+
   while (counter < 50) {
     const existing = await prisma.companies.findFirst({
       where: { name: newName }
     })
-    
+
     if (!existing) {
       return newName
     }
-    
+
     counter++
     newName = `${baseName} Copy ${counter}`
   }
-  
+
   return `${baseName} Copy ${Date.now()}`
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     console.log('=== COPY API START ===')
-    const companyId = parseInt(params.id)
+    const { id } = await params  // Добавить await
+    const companyId = parseInt(id)  // Изменить с params.id на id
     console.log('Company ID to copy:', companyId)
-    
-    if (isNaN(companyId)) {
-      console.log('Invalid company ID')
-      return NextResponse.json({ 
-        success: false,
-        error: 'Invalid company ID' 
-      }, { status: 400 })
-    }
 
     // Подключение к базе
     console.log('Connecting to database...')
@@ -82,9 +75,9 @@ export async function POST(
 
     if (!originalCompany) {
       console.log('Company not found')
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: false,
-        error: 'Company not found' 
+        error: 'Company not found'
       }, { status: 404 })
     }
 
@@ -115,7 +108,7 @@ export async function POST(
         director_name: originalCompany.director_name,
         tax_country: originalCompany.tax_country,
         base_currency: originalCompany.base_currency,
-        
+
         // Опциональные поля (копируем если есть)
         short_name: uniqueName.substring(0, 10),
         description: originalCompany.description,
@@ -126,7 +119,7 @@ export async function POST(
         vat_number: originalCompany.vat_number,
         legal_address: originalCompany.legal_address,
         actual_address: originalCompany.actual_address,
-        
+
         // Булевые поля
         is_active: true,
         setup_completed: originalCompany.setup_completed,
@@ -159,20 +152,20 @@ export async function POST(
     console.error('Error message:', error.message)
     console.error('Error code:', error.code)
     console.error('Full error:', error)
-    
+
     // Обработка специфичных ошибок Prisma
     if (error.code === 'P2002') {
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: false,
-        error: 'Company with this code or name already exists' 
+        error: 'Company with this code or name already exists'
       }, { status: 409 })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: false,
-      error: `Failed to copy company: ${error.message}` 
+      error: `Failed to copy company: ${error.message}`
     }, { status: 500 })
-    
+
   } finally {
     await prisma.$disconnect()
     console.log('Database disconnected')
