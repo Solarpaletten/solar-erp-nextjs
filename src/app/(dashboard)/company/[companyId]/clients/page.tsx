@@ -211,28 +211,26 @@ export default function CompactClientsTable() {
     try {
       // Находим максимальный номер копии для этого клиента
       const baseName = client.name?.replace(/ Copy \d+$/, '') || client.name || ''
-      const copyClients = clients.filter(c => 
+      const baseCode = client.code?.split('_copy')[0] || client.code || '' // Получаем базовый код
+      
+      const copyClients = clients.filter(c =>
         c.name?.startsWith(baseName) && c.name?.includes('Copy')
       )
-      
-      // Извлекаем номера копий и находим максимальный
+  
       const copyNumbers = copyClients.map(c => {
         const match = c.name?.match(/Copy (\d+)$/)
         return match ? parseInt(match[1]) : 0
       }).filter(num => num > 0)
-      
+  
       const nextCopyNumber = copyNumbers.length > 0 ? Math.max(...copyNumbers) + 1 : 1
-      
+  
       const copiedData = {
         ...formData,
         name: `${baseName} Copy ${nextCopyNumber}`,
-        code: `copy${nextCopyNumber}`, // Простой код: copy1, copy2, copy3...
+        code: baseCode ? `${baseCode}_copy${nextCopyNumber}` : `copy${nextCopyNumber}`, // ✅ Исправлено
         email: `copy${nextCopyNumber}_${client.email}`,
         abbreviation: client.abbreviation ? `${client.abbreviation} Copy` : '',
-        phone: client.phone,
-        fax: client.fax,
-        website: client.website,
-        vat_code: client.vat_code ? `${client.vat_code}_copy${nextCopyNumber}` : '',
+        vat_code: '', //,
         role: client.role,
         currency: client.currency,
         country: client.country,
