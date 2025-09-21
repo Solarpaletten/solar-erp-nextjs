@@ -2,11 +2,10 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export default async function DashboardLayout({ 
-  children,
-  params
+  children
 }: {
   children: React.ReactNode
-  params: Promise<{ companyId: string }> // Изменено на Promise
+  // Убрать params - на этом уровне их нет
 }) {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')
@@ -14,9 +13,6 @@ export default async function DashboardLayout({
   if (!token) {
     redirect('/login')
   }
-
-  // Если нужно использовать companyId, добавьте:
-  // const { companyId } = await params
 
   return (
     <div className="min-h-screen bg-gray-50">
