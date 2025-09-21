@@ -161,31 +161,21 @@ export async function POST(
 
   } catch (error) {
     console.error('=== CLIENTS API POST ERROR ===')
-    console.error('Error type:', error.constructor.name)
-    console.error('Error message:', error.message)
-    console.error('Error code:', error.code)
-    console.error('Full error:', error)
     
-    // Обработка уникальных ограничений
-    if (error.code === 'P2002') {
-      const field = error.meta?.target?.[0] || 'field'
-      return NextResponse.json({ 
-        success: false, 
-        error: `Client with this ${field} already exists` 
-      }, { status: 409 })
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+      // Only access .code if it exists on this error type
+      console.error('Error code:', (error as any).code)
+    } else {
+      console.error('Unknown error:', error)
     }
-
-    // Обработка ошибок схемы
-    if (error.code === 'P2000') {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid data provided' 
-      }, { status: 400 })
-    }
-
-    return NextResponse.json({ 
-      success: false, 
-      error: `Failed to create client: ${error.message}` 
+    
+    console.error('Full error:', error)
+  
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create client'
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()
