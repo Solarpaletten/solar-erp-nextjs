@@ -49,12 +49,20 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('=== CLIENT GET BY ID ERROR ===')
-    console.error('Error:', error)
+    console.error('=== CLIENT GET ERROR ===')  // Note: should be DELETE, not UPDATE
+    
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+    } else {
+      console.error('Unknown error:', error)
+    }
+  
     return NextResponse.json({
       success: false,
-      error: 'Internal Server Error'
+      error: error instanceof Error ? `Failed to delete client: ${error.message}` : 'Failed to delete client'
     }, { status: 500 })
+    
   } finally {
     await prisma.$disconnect()
   }
@@ -166,23 +174,20 @@ export async function PUT(
     })
 
   } catch (error) {
-    console.error('=== CLIENT UPDATE ERROR ===')
-    console.error('Error type:', error.constructor.name)
-    console.error('Error message:', error.message)
-    console.error('Error code:', error.code)
-
-    if (error.code === 'P2002') {
-      const field = error.meta?.target?.[0] || 'field'
-      return NextResponse.json({
-        success: false,
-        error: `Client with this ${field} already exists`
-      }, { status: 409 })
+    console.error('=== CLIENT UPDATE ERROR ===')  // Note: should be DELETE, not UPDATE
+    
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+    } else {
+      console.error('Unknown error:', error)
     }
-
+  
     return NextResponse.json({
       success: false,
-      error: `Failed to update client: ${error.message}`
+      error: error instanceof Error ? `Failed to delete client: ${error.message}` : 'Failed to delete client'
     }, { status: 500 })
+    
   } finally {
     await prisma.$disconnect()
   }
@@ -239,13 +244,20 @@ export async function DELETE(
     })
 
   } catch (error) {
-    console.error('=== CLIENT DELETE ERROR ===')
-    console.error('Error:', error)
-
+    console.error('=== CLIENT DELETE ERROR ===')  // Note: should be DELETE, not UPDATE
+    
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+    } else {
+      console.error('Unknown error:', error)
+    }
+  
     return NextResponse.json({
       success: false,
-      error: `Failed to delete client: ${error.message}`
+      error: error instanceof Error ? `Failed to delete client: ${error.message}` : 'Failed to delete client'
     }, { status: 500 })
+    
   } finally {
     await prisma.$disconnect()
   }
