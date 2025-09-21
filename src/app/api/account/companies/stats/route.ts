@@ -23,15 +23,23 @@ export async function GET(request: NextRequest) {
         })
 
     } catch (error) {
-        console.error('API Error:', error.message)
-        console.error('Error details:', error)
+        console.error('=== STATS API ERROR ===')
         
-        return NextResponse.json({ 
-            error: error.message,
-            type: error.constructor.name
+        // Safe error handling for TypeScript
+        if (error instanceof Error) {
+          console.error('Error type:', error.constructor.name)
+          console.error('Error message:', error.message)
+          console.error('Error stack:', error.stack)
+        } else {
+          console.error('Unknown error:', error)
+        }
+      
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to fetch company stats',
+          details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 })
-        
-    } finally {
+      } finally {
         await prisma.$disconnect()
     }
 }
