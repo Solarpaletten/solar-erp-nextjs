@@ -148,25 +148,25 @@ export async function POST(
 
   } catch (error) {
     console.error('=== COPY API ERROR ===')
-    console.error('Error type:', error.constructor.name)
-    console.error('Error message:', error.message)
-    console.error('Error code:', error.code)
-    console.error('Full error:', error)
-
-    // Обработка специфичных ошибок Prisma
-    if (error.code === 'P2002') {
-      return NextResponse.json({
-        success: false,
-        error: 'Company with this code or name already exists'
-      }, { status: 409 })
+    
+    // Safe error handling for TypeScript
+    if (error instanceof Error) {
+      console.error('Error type:', error.constructor.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    } else {
+      console.error('Unknown error:', error)
     }
-
-    return NextResponse.json({
-      success: false,
-      error: `Failed to copy company: ${error.message}`
-    }, { status: 500 })
-
-  } finally {
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to copy company',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }  finally {
     await prisma.$disconnect()
     console.log('Database disconnected')
   }
