@@ -67,7 +67,7 @@ export default function CompactClientsTable() {
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [selectedClients, setSelectedClients] = useState<number[]>([])
-  
+
   // Фильтры для каждого столбца
   const [columnFilters, setColumnFilters] = useState<ColumnFilter>({
     name: '',
@@ -170,14 +170,14 @@ export default function CompactClientsTable() {
       setError('Название и email обязательны')
       return
     }
-    
+
     try {
-      const url = editingClient 
+      const url = editingClient
         ? `/api/company/${companyId}/clients/${editingClient.id}`
         : `/api/company/${companyId}/clients`
-      
+
       const method = editingClient ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -207,7 +207,7 @@ export default function CompactClientsTable() {
     const random = Math.floor(Math.random() * 1000)
     const baseCode = client.code?.split('_COPY_')[0] || ''
     const baseName = client.name?.replace(/ Copy( \d+)?$/, '') || ''
-    
+
     const copiedData = {
       ...formData,
       name: `${baseName} Copy ${random}`,
@@ -341,8 +341,8 @@ export default function CompactClientsTable() {
   }
 
   const handleSelectClient = (clientId: number) => {
-    setSelectedClients(prev => 
-      prev.includes(clientId) 
+    setSelectedClients(prev =>
+      prev.includes(clientId)
         ? prev.filter(id => id !== clientId)
         : [...prev, clientId]
     )
@@ -376,7 +376,7 @@ export default function CompactClientsTable() {
             </span>
           </div>
         </div>
-        
+
         {/* Панель инструментов */}
         <div className="bg-white border-t border-orange-200 px-3 py-2">
           <div className="flex items-center space-x-2">
@@ -387,30 +387,62 @@ export default function CompactClientsTable() {
               <Plus size={14} />
               <span>Добавить нового клиента</span>
             </button>
-            
+
             <button
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
+              onClick={() => {
+                if (selectedClients.length === 1) {
+                  const client = clients.find(c => c.id === selectedClients[0])
+                  if (client) handleEdit(client)
+                }
+              }}
+              disabled={selectedClients.length !== 1}
+              className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length === 1
+                ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               title="Редактировать"
             >
               <Edit size={14} />
             </button>
-            
+
             <button
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
+              onClick={() => {
+                if (selectedClients.length > 0) {
+                  const confirmMsg = `Удалить ${selectedClients.length} клиент(ов)?`
+                  if (confirm(confirmMsg)) {
+                    selectedClients.forEach(id => handleDelete(id))
+                  }
+                }
+              }}
+              disabled={selectedClients.length === 0}
+              className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length > 0
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               title="Удалить"
             >
               <Trash2 size={14} />
             </button>
-            
+
             <button
-              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
+              onClick={() => {
+                selectedClients.forEach(id => {
+                  const client = clients.find(c => c.id === id)
+                  if (client) handleCopy(client)
+                })
+              }}
+              disabled={selectedClients.length === 0}
+              className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length > 0
+                  ? 'bg-gray-500 hover:bg-gray-600 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               title="Копировать"
             >
               <Copy size={14} />
             </button>
-            
+
             <div className="h-6 w-px bg-gray-300 mx-2"></div>
-            
+
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
               title="Список"
@@ -424,7 +456,7 @@ export default function CompactClientsTable() {
                 <line x1="3" y1="18" x2="3.01" y2="18"></line>
               </svg>
             </button>
-            
+
             <button
               className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
               title="Таблица"
@@ -437,9 +469,9 @@ export default function CompactClientsTable() {
                 <line x1="3" y1="15" x2="9" y2="15"></line>
               </svg>
             </button>
-            
+
             <div className="h-6 w-px bg-gray-300 mx-2"></div>
-            
+
             <button
               className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
               title="Печать"
@@ -450,7 +482,7 @@ export default function CompactClientsTable() {
                 <rect x="6" y="14" width="12" height="8"></rect>
               </svg>
             </button>
-            
+
             <button
               className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
               title="Настройки"
@@ -603,8 +635,8 @@ export default function CompactClientsTable() {
           </thead>
           <tbody className="bg-white">
             {filteredClients.map((client, index) => (
-              <tr 
-                key={client.id} 
+              <tr
+                key={client.id}
                 className={`
                   border-b border-gray-100 hover:bg-gray-50 transition-colors
                   ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}
@@ -632,11 +664,10 @@ export default function CompactClientsTable() {
                 <td className="p-2 text-gray-700">{client.vat_code || '-'}</td>
                 <td className="p-2 text-gray-700">{client.country || '-'}</td>
                 <td className="p-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    client.role === 'CLIENT' ? 'bg-blue-100 text-blue-800' :
+                  <span className={`px-2 py-1 text-xs rounded-full ${client.role === 'CLIENT' ? 'bg-blue-100 text-blue-800' :
                     client.role === 'SUPPLIER' ? 'bg-green-100 text-green-800' :
-                    'bg-purple-100 text-purple-800'
-                  }`}>
+                      'bg-purple-100 text-purple-800'
+                    }`}>
                     {client.role}
                   </span>
                 </td>
@@ -737,7 +768,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Введите название клиента"
                   />
@@ -750,7 +781,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.abbreviation}
-                    onChange={(e) => setFormData({...formData, abbreviation: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Краткое название"
                   />
@@ -763,7 +794,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.code}
-                    onChange={(e) => setFormData({...formData, code: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Код клиента"
                   />
@@ -776,7 +807,7 @@ export default function CompactClientsTable() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="email@example.com"
                   />
@@ -789,7 +820,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="+1 234 567 8900"
                   />
@@ -802,7 +833,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.fax}
-                    onChange={(e) => setFormData({...formData, fax: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="+1 234 567 8901"
                   />
@@ -815,7 +846,7 @@ export default function CompactClientsTable() {
                   <input
                     type="url"
                     value={formData.website}
-                    onChange={(e) => setFormData({...formData, website: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="https://example.com"
                   />
@@ -828,7 +859,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.vat_code}
-                    onChange={(e) => setFormData({...formData, vat_code: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, vat_code: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="VAT123456789"
                   />
@@ -842,7 +873,7 @@ export default function CompactClientsTable() {
                     type="number"
                     step="0.01"
                     value={formData.vat_rate}
-                    onChange={(e) => setFormData({...formData, vat_rate: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, vat_rate: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="20.00"
                   />
@@ -855,7 +886,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.country}
-                    onChange={(e) => setFormData({...formData, country: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Страна клиента"
                   />
@@ -867,7 +898,7 @@ export default function CompactClientsTable() {
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value as 'CLIENT' | 'SUPPLIER' | 'BOTH'})}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value as 'CLIENT' | 'SUPPLIER' | 'BOTH' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="CLIENT">CLIENT</option>
@@ -882,7 +913,7 @@ export default function CompactClientsTable() {
                   </label>
                   <select
                     value={formData.currency}
-                    onChange={(e) => setFormData({...formData, currency: e.target.value as 'EUR' | 'USD' | 'AED' | 'UAH' | 'GBP'})}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'EUR' | 'USD' | 'AED' | 'UAH' | 'GBP' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="EUR">EUR</option>
@@ -901,7 +932,7 @@ export default function CompactClientsTable() {
                     type="number"
                     step="0.01"
                     value={formData.credit_sum}
-                    onChange={(e) => setFormData({...formData, credit_sum: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, credit_sum: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="0.00"
                   />
@@ -914,7 +945,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.payment_terms}
-                    onChange={(e) => setFormData({...formData, payment_terms: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="30 дней"
                   />
@@ -927,7 +958,7 @@ export default function CompactClientsTable() {
                   <input
                     type="text"
                     value={formData.registration_number}
-                    onChange={(e) => setFormData({...formData, registration_number: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     placeholder="Регистрационный номер"
                   />
@@ -940,7 +971,7 @@ export default function CompactClientsTable() {
                   <input
                     type="date"
                     value={formData.registration_date}
-                    onChange={(e) => setFormData({...formData, registration_date: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, registration_date: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
@@ -953,7 +984,7 @@ export default function CompactClientsTable() {
                   </label>
                   <textarea
                     value={formData.legal_address}
-                    onChange={(e) => setFormData({...formData, legal_address: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, legal_address: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     rows={2}
                     placeholder="Введите юридический адрес"
@@ -966,7 +997,7 @@ export default function CompactClientsTable() {
                   </label>
                   <textarea
                     value={formData.actual_address}
-                    onChange={(e) => setFormData({...formData, actual_address: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, actual_address: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     rows={2}
                     placeholder="Введите фактический адрес"
@@ -979,7 +1010,7 @@ export default function CompactClientsTable() {
                   </label>
                   <textarea
                     value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                     rows={3}
                     placeholder="Дополнительные примечания"
@@ -992,7 +1023,7 @@ export default function CompactClientsTable() {
                   <input
                     type="checkbox"
                     checked={formData.is_active}
-                    onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Активен</span>
@@ -1002,7 +1033,7 @@ export default function CompactClientsTable() {
                   <input
                     type="checkbox"
                     checked={formData.is_juridical}
-                    onChange={(e) => setFormData({...formData, is_juridical: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, is_juridical: e.target.checked })}
                     className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Юридическое лицо</span>
@@ -1012,7 +1043,7 @@ export default function CompactClientsTable() {
                   <input
                     type="checkbox"
                     checked={formData.is_foreigner}
-                    onChange={(e) => setFormData({...formData, is_foreigner: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, is_foreigner: e.target.checked })}
                     className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Иностранец</span>
@@ -1022,7 +1053,7 @@ export default function CompactClientsTable() {
                   <input
                     type="checkbox"
                     checked={formData.automatic_debt_reminder}
-                    onChange={(e) => setFormData({...formData, automatic_debt_reminder: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, automatic_debt_reminder: e.target.checked })}
                     className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Автонапоминание о долге</span>
