@@ -103,7 +103,7 @@ export async function PUT(
     const updateData = {}
     
     // Основные поля
-    if (data.name !== undefined) updateData.name = data.name
+    if (data['name'] !== undefined) updateData.name = data['name']
     if (data.email !== undefined) updateData.email = data.email
     if (data.abbreviation !== undefined) updateData.abbreviation = data.abbreviation
     if (data.code !== undefined) updateData.code = data.code
