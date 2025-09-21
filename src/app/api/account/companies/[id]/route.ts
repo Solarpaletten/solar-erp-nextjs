@@ -12,6 +12,8 @@ export async function PUT(
     const { id } = await params  // await!
     const companyId = parseInt(id)
 
+    const { name, code, description } = await request.json()
+    
     console.log('Updating company:', companyId, { name, code, description })
 
     const updatedCompany = await prisma.companies.update({
@@ -51,6 +53,11 @@ export async function DELETE(
     const { id } = await params
     const companyId = parseInt(id)
 
+    // ДОБАВЬТЕ ЭТИ СТРОКИ:
+    await prisma.companies.delete({
+      where: { id: companyId }
+    })
+    
     console.log('Company deleted successfully')
 
     return NextResponse.json({
