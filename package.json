@@ -1,51 +1,43 @@
 {
   "name": "solar-erp-nextjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Solar ERP - AI | IT | Solar Integration Platform",
+  "author": "Solar Team (Леонид, Dashka, Claude)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Solarpaletten/solar-erp-nextjs.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "pnpm --parallel --stream run dev",
+    "dev:backend": "pnpm --filter @solar-erp/backend dev",
+    "dev:frontend": "pnpm --filter @solar-erp/frontend dev",
+    "build": "pnpm --recursive --stream run build",
+    "build:backend": "pnpm --filter @solar-erp/backend build",
+    "build:frontend": "pnpm --filter @solar-erp/frontend build",
+    "start": "pnpm --parallel --stream run start",
+    "start:backend": "pnpm --filter @solar-erp/backend start",
+    "start:frontend": "pnpm --filter @solar-erp/frontend start",
+    "lint": "pnpm --recursive run lint",
+    "clean": "pnpm --recursive run clean && rm -rf node_modules",
+    "prisma:generate": "pnpm --filter @solar-erp/backend prisma:generate",
+    "prisma:migrate": "pnpm --filter @solar-erp/backend prisma:migrate",
+    "prisma:studio": "pnpm --filter @solar-erp/backend prisma:studio",
+    "prisma:seed": "pnpm --filter @solar-erp/backend prisma:seed",
+    "prisma:reset": "pnpm --filter @solar-erp/backend prisma:reset",
+    "test": "pnpm --recursive run test"
   },
-  "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
-    "@prisma/client": "^6.16.2",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-toast": "^1.2.15",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "bcryptjs": "^3.0.2",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "dotenv": "^17.2.2",
-    "jose": "^6.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.544.0",
-    "next": "15.5.3",
-    "next-auth": "^4.24.11",
-    "prisma": "^6.16.2",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-hook-form": "^7.62.0",
-    "tailwind-merge": "^3.3.1",
-    "winston": "^3.17.0",
-    "zod": "^4.1.8",
-    "tailwindcss": "^3.4.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32"
-  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.3",
-    "@tailwindcss/typography": "^0.5.10",
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "eslint": "^9"
+    "typescript": "^5.9.2"
   }
 }
