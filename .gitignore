@@ -45,3 +45,5 @@ next-env.d.ts
 /frontend/.next
 /backend/.next
 
+# npm lockfile
+package-lock.json
