@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
-const router = Router();
+const router: Router = Router();
 const prisma = new PrismaClient();
 
 // POST /api/itsolar/auth/login
