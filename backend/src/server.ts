@@ -6,14 +6,12 @@ import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth';
 import companiesRouter from './routes/companies';
 
-// Load environment variables
 dotenv.config({ path: path.join(__dirname, '../.env.local') });
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
@@ -22,13 +20,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
 });
 
-// Health check
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'ok', 
@@ -37,7 +33,6 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
-// Echo endpoint
 app.get('/api/echo', (req: Request, res: Response) => {
   res.json({ 
     message: 'Solar ERP API is running',
@@ -46,11 +41,9 @@ app.get('/api/echo', (req: Request, res: Response) => {
   });
 });
 
-// Mount routes
 app.use('/api/itsolar/auth', authRouter);
 app.use('/api/itsolar/account/companies', companiesRouter);
 
-// 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({ 
     error: 'Not found',
@@ -58,7 +51,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log('🚀 Solar ERP Backend API');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
