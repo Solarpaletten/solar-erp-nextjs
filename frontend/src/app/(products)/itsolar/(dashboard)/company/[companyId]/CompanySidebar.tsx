@@ -1,224 +1,221 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import { useParams, usePathname, useRouter } from 'next/navigation'
-import { GripVertical, ChevronDown, ChevronRight } from 'lucide-react'
+import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-// Типы секций: одиночный пункт или группа пунктов
-type MenuItem = {
-  id: string;
-  type: 'item';
-  title: string;
-  route: string;
-  icon: string;
-  badge?: string;
-};
+interface CompanySidebarProps {
+  companyId: string;
+}
 
-type MenuGroup = {
-  id: string;
-  type: 'group';
-  title: string;
-  items: MenuItem[];
-};
+export default function CompanySidebar({ companyId }: CompanySidebarProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [companyName, setCompanyName] = useState('');
 
-type Section = MenuItem | MenuGroup;
-
-const CompanySidebar: React.FC = () => {
-  const params = useParams()
-  const pathname = usePathname()
-  const router = useRouter()
-  const companyId = params.companyId as string
-
-  // Универсальный список секций
-  const [sections, setSections] = useState<Section[]>([
-    { id: 'dashboard', type: 'item', title: 'Dashboard', route: `/company/${companyId}/dashboard`, icon: '📊' },
-    { id: 'clients', type: 'item', title: 'Clients', route: `/company/${companyId}/clients`, icon: '👥' },
-    { id: 'dashka', type: 'item', title: 'Dashka', route: `/company/${companyId}/dashka`, icon: '🎯', badge: 'HOT' },
-    {
-      id: 'warehouseGroup',
-      type: 'group',
-      title: 'Склад',
-      items: [
-        { id: 'products', type: 'item', title: 'Products', route: `/company/${companyId}/products`, icon: '📦' },
-        { id: 'warehouse', type: 'item', title: 'Warehouse', route: `/company/${companyId}/warehouse`, icon: '🏭' },
-      ],
-    },
-    {
-      id: 'salesGroup',
-      type: 'group',
-      title: 'Продажи и покупки',
-      items: [
-        { id: 'sales', type: 'item', title: 'Sales', route: `/company/${companyId}/sales`, icon: '💰' },
-        { id: 'purchases', type: 'item', title: 'Purchases', route: `/company/${companyId}/purchases`, icon: '🛒' },
-      ],
-    },
-    {
-      id: 'financeGroup',
-      type: 'group',
-      title: 'Финансы',
-      items: [
-        { id: 'accounts', type: 'item', title: 'Chart of Accounts', route: `/company/${companyId}/chart-of-accounts`, icon: '📋' },
-        { id: 'banking', type: 'item', title: 'Banking', route: `/company/${companyId}/banking`, icon: '🏦' },
-      ],
-    },
-    { id: 'tabbook', type: 'item', title: 'TAB‑Бухгалтерия', route: `/company/${companyId}/tabbook`, icon: '⚡', badge: 'NEW' },
-    { id: 'cloudide', type: 'item', title: 'Cloud IDE', route: `/company/${companyId}/cloudide`, icon: '☁️', badge: 'BETA' },
-    { id: 'inventory-flow', type: 'item', title: 'Товарооборот', route: `/company/${companyId}/inventory-flow`, icon: '🎯', badge: 'NEW' },
-  ]);
-
-  // Состояния для drag‑and‑drop
-  const [draggedSection, setDraggedSection] = useState<Section | null>(null);
-  const [dragOverSection, setDragOverSection] = useState<Section | null>(null);
-
-  // Состояние для разворачивания групп
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    warehouseGroup: true,
-    salesGroup: true,
-    financeGroup: true,
-  });
-
-  const handleDragStart = (e: React.DragEvent, section: Section) => {
-    setDraggedSection(section);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, section: Section) => {
-    e.preventDefault();
-    setDragOverSection(section);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverSection(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, targetSection: Section) => {
-    e.preventDefault();
-    if (!draggedSection || draggedSection.id === targetSection.id) {
-      setDraggedSection(null);
-      setDragOverSection(null);
-      return;
+  useEffect(() => {
+    const name = localStorage.getItem('currentCompanyName');
+    if (name) {
+      setCompanyName(name);
     }
-    const newSections = [...sections];
-    const fromIndex = newSections.findIndex((s) => s.id === draggedSection.id);
-    const toIndex = newSections.findIndex((s) => s.id === targetSection.id);
-    newSections.splice(fromIndex, 1);
-    newSections.splice(toIndex, 0, draggedSection);
-    setSections(newSections);
-    setDraggedSection(null);
-    setDragOverSection(null);
-  };
+  }, []);
 
-  const toggleGroup = (groupId: string) => {
-    setExpandedGroups((prev) => ({
-      ...prev,
-      [groupId]: !prev[groupId],
-    }));
-  };
+  const navigation = [
+    {
+      name: 'Dashboard',
+      href: `/itsolar/company/${companyId}/dashboard`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Clients',
+      href: `/itsolar/company/${companyId}/clients`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Projects',
+      href: `/itsolar/company/${companyId}/projects`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Settings',
+      href: `/itsolar/company/${companyId}/settings`,
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+        </svg>
+      ),
+    },
+  ];
 
-  // Проверка активности ссылки
-  const isActiveLink = (route: string) => {
-    return pathname === route;
-  };
+  const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="flex flex-col w-60 bg-slate-800 text-white min-h-screen">
-      {/* Шапка сайдбара */}
-      <div className="p-4 text-2xl font-bold border-b border-slate-700">Solar ERP</div>
-
-      <div className="flex-1 overflow-y-auto">
-        {sections.map((section) => (
-          <div
-            key={section.id}
-            className={`${
-              dragOverSection?.id === section.id ? 'border-t-2 border-orange-500' : ''
-            } flex flex-col`}
-            draggable
-            onDragStart={(e) => handleDragStart(e, section)}
-            onDragOver={(e) => handleDragOver(e, section)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, section)}
-          >
-            <div className="flex items-center">
-              {/* Маркер для перемещения */}
-              <div className="p-2 cursor-grab hover:bg-slate-700">
-                <GripVertical className="w-4 h-4 text-slate-400" />
-              </div>
-
-              {section.type === 'item' ? (
-                <Link
-                  href={section.route}
-                  className={`flex-1 flex items-center p-3 hover:bg-slate-700 transition-colors ${
-                    isActiveLink(section.route) ? 'bg-slate-700 border-r-2 border-orange-500' : ''
-                  }`}
-                >
-                  <span className="mr-2">{section.icon}</span>
-                  <span>{section.title}</span>
-                  {section.badge && (
-                    <span className="ml-2 px-2 py-1 text-xs bg-orange-500 text-white rounded-full">
-                      {section.badge}
-                    </span>
-                  )}
-                </Link>
-              ) : (
-                // Заголовок группы
-                <button
-                  onClick={() => toggleGroup(section.id)}
-                  className="flex-1 flex items-center p-3 text-left hover:bg-slate-700 transition-colors"
-                >
-                  <span className="mr-2">{section.title}</span>
-                  <span className="ml-auto">
-                    {expandedGroups[section.id] ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </span>
-                </button>
-              )}
-            </div>
-
-            {/* Подменю группы */}
-            {section.type === 'group' && expandedGroups[section.id] && (
-              <div className="ml-8">
-                {section.items.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.route}
-                    className={`flex items-center p-2 hover:bg-slate-700 transition-colors ${
-                      isActiveLink(item.route) ? 'bg-slate-700 border-r-2 border-orange-500' : ''
-                    }`}
-                  >
-                    <span className="mr-2">{item.icon}</span>
-                    <span>{item.title}</span>
-                    {item.badge && (
-                      <span className="ml-2 px-2 py-1 text-xs bg-orange-500 text-white rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+      {/* Logo & Company Name */}
+      <div className="flex items-center justify-center h-16 border-b border-gray-200 px-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
           </div>
-        ))}
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900 truncate max-w-[150px]">
+              {companyName || 'Company'}
+            </h2>
+            <p className="text-xs text-gray-500">IT Solar</p>
+          </div>
+        </div>
       </div>
 
-      {/* Кнопка возврата к выбору компании */}
-      <div className="mt-auto p-3 border-t border-slate-700">
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        {navigation.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                active
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <span className={active ? 'text-white' : 'text-gray-500'}>
+                {item.icon}
+              </span>
+              <span className="ml-3">{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Actions */}
+      <div className="border-t border-gray-200 p-4 space-y-2">
+        {/* ✅ ИСПРАВЛЕНО: Добавлен префикс /itsolar */}
         <button
           onClick={() => {
             localStorage.removeItem('currentCompanyId');
             localStorage.removeItem('currentCompanyName');
-            router.push('/account/companies');
+            router.push('/itsolar/account/companies');
           }}
-          className="w-full text-left text-slate-400 hover:text-white flex items-center"
+          className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
         >
-          🔙 Back to Companies
+          <svg
+            className="w-5 h-5 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          <span className="ml-3">Back to Companies</span>
+        </button>
+
+        <button
+          onClick={() => {
+            // Clear all auth data
+            localStorage.removeItem('currentCompanyId');
+            localStorage.removeItem('currentCompanyName');
+            // Call logout API
+            fetch('/api/itsolar/auth/logout', {
+              method: 'POST',
+            }).then(() => {
+              router.push('/itsolar/login');
+            });
+          }}
+          className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          <span className="ml-3">Sign Out</span>
         </button>
       </div>
-    </nav>
+    </div>
   );
-};
-
-export default CompanySidebar;
+}

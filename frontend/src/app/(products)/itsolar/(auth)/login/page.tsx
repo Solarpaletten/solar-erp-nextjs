@@ -34,7 +34,7 @@ export default function LoginPage() {
         }
 
         // Перенаправляем на Dashboard
-        router.push('/account/companies')
+        router.push('/itsolar/account/companies')
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Login failed')

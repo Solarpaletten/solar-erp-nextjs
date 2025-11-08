@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: solar-erp-backend
+    env: node
+    buildCommand: pnpm install && pnpm prisma generate && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production

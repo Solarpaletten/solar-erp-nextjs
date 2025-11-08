@@ -2,6 +2,9 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import cookieParser from 'cookie-parser';
+import authRouter from './routes/auth';
+import companiesRouter from './routes/companies';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../.env.local') });
@@ -17,6 +20,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -42,14 +46,9 @@ app.get('/api/echo', (req: Request, res: Response) => {
   });
 });
 
-// API Routes placeholder
-app.get('/api/itsolar/auth/login', (req: Request, res: Response) => {
-  res.json({ message: 'Login endpoint - to be implemented' });
-});
-
-app.get('/api/itsolar/account/companies', (req: Request, res: Response) => {
-  res.json({ message: 'Companies endpoint - to be implemented' });
-});
+// Mount routes
+app.use('/api/itsolar/auth', authRouter);
+app.use('/api/itsolar/account/companies', companiesRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -59,36 +58,13 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
 // Start server
-const server = app.listen(PORT, () => {
-  console.log('\n🚀 Solar ERP Backend API');
+app.listen(PORT, () => {
+  console.log('🚀 Solar ERP Backend API');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`📡 Server:  http://localhost:${PORT}`);
   console.log(`📊 Health:  http://localhost:${PORT}/api/health`);
   console.log(`🔧 Echo:    http://localhost:${PORT}/api/echo`);
-  console.log(`🗄️  Database: PostgreSQL`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('\nSIGINT signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+  console.log('🗄️  Database: PostgreSQL');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });

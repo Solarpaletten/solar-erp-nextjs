@@ -16,13 +16,13 @@ export default function HomePage() {
             </div>
             <div className="flex space-x-3">
               <Link
-                href="/login"
+                href="/itsolar/login"
                 className="px-4 py-2 text-gray-600 hover:text-blue-600 font-semibold transition-colors"
               >
                 Sign In
               </Link>
               <Link
-                href="/register"
+                href="/itsolar/register"
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Get Started
@@ -57,7 +57,7 @@ export default function HomePage() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
             <Link
-              href="/login"
+              href="/itsolar/login"
               className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 inline-flex items-center justify-center"
             >
               <span className="mr-2">🚀</span>
@@ -67,7 +67,7 @@ export default function HomePage() {
               </svg>
             </Link>
             <Link
-              href="/register"
+              href="/itsolar/register"
               className="group px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 inline-flex items-center justify-center"
             >
               <span className="mr-2">✨</span>
@@ -206,7 +206,7 @@ export default function HomePage() {
               Start Your Free Trial
             </Link>
             <Link
-              href="/login"
+              href="/itsolar/login"
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
             >
               Access Demo
