@@ -33,15 +33,15 @@ export default function CompanySidebar({ companyId }: CompanySidebarProps) {
   const [companyName, setCompanyName] = useState('');
 
   const [sections, setSections] = useState<Section[]>([
-    { id: 'dashboard', type: 'item', title: 'Dashboard', route: `/itsolar/company/${companyId}/dashboard`, icon: '📊' },
-    { id: 'clients', type: 'item', title: 'Clients', route: `/itsolar/company/${companyId}/clients`, icon: '👥' },
+    { id: 'dashboard', type: 'item', title: 'Dashboard', route: `/company/${companyId}/dashboard`, icon: '📊' },
+    { id: 'clients', type: 'item', title: 'Clients', route: `/company/${companyId}/clients`, icon: '👥' },
     {
       id: 'warehouseGroup',
       type: 'group',
       title: 'Склад',
       items: [
-        { id: 'products', type: 'item', title: 'Products', route: `/itsolar/company/${companyId}/products`, icon: '📦' },
-        { id: 'warehouse', type: 'item', title: 'Warehouse', route: `/itsolar/company/${companyId}/warehouse`, icon: '🏭' },
+        { id: 'products', type: 'item', title: 'Products', route: `/company/${companyId}/products`, icon: '📦' },
+        { id: 'warehouse', type: 'item', title: 'Warehouse', route: `/company/${companyId}/warehouse`, icon: '🏭' },
       ],
     },
     {
@@ -49,8 +49,8 @@ export default function CompanySidebar({ companyId }: CompanySidebarProps) {
       type: 'group',
       title: 'Продажи и покупки',
       items: [
-        { id: 'sales', type: 'item', title: 'Sales', route: `/itsolar/company/${companyId}/sales`, icon: '💰' },
-        { id: 'purchases', type: 'item', title: 'Purchases', route: `/itsolar/company/${companyId}/purchases`, icon: '🛒' },
+        { id: 'sales', type: 'item', title: 'Sales', route: `/company/${companyId}/sales`, icon: '💰' },
+        { id: 'purchases', type: 'item', title: 'Purchases', route: `/company/${companyId}/purchases`, icon: '🛒' },
       ],
     },
     {
@@ -58,11 +58,11 @@ export default function CompanySidebar({ companyId }: CompanySidebarProps) {
       type: 'group',
       title: 'Финансы',
       items: [
-        { id: 'accounts', type: 'item', title: 'Chart of Accounts', route: `/itsolar/company/${companyId}/chart-of-accounts`, icon: '📋' },
-        { id: 'banking', type: 'item', title: 'Banking', route: `/itsolar/company/${companyId}/banking`, icon: '🏦' },
+        { id: 'accounts', type: 'item', title: 'Chart of Accounts', route: `/company/${companyId}/chart-of-accounts`, icon: '📋' },
+        { id: 'banking', type: 'item', title: 'Banking', route: `/company/${companyId}/banking`, icon: '🏦' },
       ],
     },
-    { id: 'settings', type: 'item', title: 'Settings', route: `/itsolar/company/${companyId}/settings`, icon: '⚙️' },
+    { id: 'settings', type: 'item', title: 'Settings', route: `/company/${companyId}/settings`, icon: '⚙️' },
   ]);
 
   const [draggedSection, setDraggedSection] = useState<Section | null>(null);
@@ -204,7 +204,7 @@ export default function CompanySidebar({ companyId }: CompanySidebarProps) {
           onClick={() => {
             localStorage.removeItem('currentCompanyId');
             localStorage.removeItem('currentCompanyName');
-            router.push('/itsolar/account/companies');
+            router.push('/account/companies');
           }}
           className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all"
         >
@@ -216,8 +216,8 @@ export default function CompanySidebar({ companyId }: CompanySidebarProps) {
           onClick={() => {
             localStorage.removeItem('currentCompanyId');
             localStorage.removeItem('currentCompanyName');
-            fetch('/api/itsolar/auth/logout', { method: 'POST' }).then(() => {
-              router.push('/itsolar/login');
+            fetch('/api/auth/logout', { method: 'POST' }).then(() => {
+              router.push('/login');
             });
           }}
           className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-slate-700 rounded-lg transition-all"

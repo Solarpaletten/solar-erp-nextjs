@@ -8,5 +8,5 @@ interface CompanyPageProps {
 
 export default async function CompanyPage({ params }: CompanyPageProps) {
   const { companyId } = await params;
-  redirect(`/itsolar/company/${companyId}/dashboard`);
+  redirect(`/company/${companyId}/dashboard`);
 }

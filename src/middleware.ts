@@ -5,17 +5,17 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value
 
   // Protected routes
-  if (request.nextUrl.pathname.startsWith('/itsolar/account') || 
-      request.nextUrl.pathname.startsWith('/itsolar/company')) {
+  if (request.nextUrl.pathname.startsWith('/account') || 
+      request.nextUrl.pathname.startsWith('/company')) {
     if (!token) {
-      return NextResponse.redirect(new URL('/itsolar/login', request.url))
+      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
 
   // Redirect authenticated users from auth pages
-  if ((request.nextUrl.pathname.startsWith('/itsolar/login') || 
-       request.nextUrl.pathname.startsWith('/itsolar/register')) && token) {
-    return NextResponse.redirect(new URL('/itsolar/account/companies', request.url))
+  if ((request.nextUrl.pathname.startsWith('/login') || 
+       request.nextUrl.pathname.startsWith('/register')) && token) {
+    return NextResponse.redirect(new URL('/account/companies', request.url))
   }
 
   return NextResponse.next()

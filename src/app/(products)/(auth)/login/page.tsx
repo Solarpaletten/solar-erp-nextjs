@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       console.log('🔑 Attempting login with real API:', email)
 
-      const response = await fetch('/api/itsolar/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -45,7 +45,7 @@ export default function LoginPage() {
         }
 
         // Перенаправляем на Dashboard
-        router.push('/itsolar/account/companies')
+        router.push('/account/companies')
       } else {
         const errorData = await response.json() as LoginResponse
         throw new Error(errorData.error || 'Login failed')
@@ -175,7 +175,7 @@ export default function LoginPage() {
             <p className="text-gray-600 text-sm">
               Нет аккаунта?{' '}
               <Link
-                href="/itsolar/register"
+                href="/register"
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
                 Зарегистрироваться

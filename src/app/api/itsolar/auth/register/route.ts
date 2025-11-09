@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     
     console.log('🔄 [Frontend Proxy] Register →', body.email);
 
-    const response = await fetch(`${BACKEND_URL}/api/itsolar/auth/register`, {
+    const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

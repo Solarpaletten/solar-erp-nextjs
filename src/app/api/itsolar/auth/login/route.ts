@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     
     console.log('🔄 [Frontend Proxy] Forwarding to:', BACKEND_URL);
 
-    const response = await fetch(`${BACKEND_URL}/api/itsolar/auth/login`, {
+    const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
