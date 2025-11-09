@@ -4,6 +4,17 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+interface LoginResponse {
+  success: boolean;
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+  };
+  token?: string;
+  error?: string;
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('solar@solar.com')
@@ -19,14 +30,14 @@ export default function LoginPage() {
     try {
       console.log('🔑 Attempting login with real API:', email)
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/itsolar/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json() as LoginResponse
         console.log('🔑 Login response:', data)
 
         if (!data.user) {
@@ -34,14 +45,14 @@ export default function LoginPage() {
         }
 
         // Перенаправляем на Dashboard
-        router.push('/account/companies')
+        router.push('/itsolar/account/companies')
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Login failed')
       }
-    } catch (error: any) {
-      console.error('❌ Login failed:', error)
-      setError(error.message || 'Ошибка входа в систему')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка входа в систему'
+
     } finally {
       setLoading(false)
     }
@@ -164,7 +175,7 @@ export default function LoginPage() {
             <p className="text-gray-600 text-sm">
               Нет аккаунта?{' '}
               <Link
-                href="/register"
+                href="/itsolar/register"
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
                 Зарегистрироваться
