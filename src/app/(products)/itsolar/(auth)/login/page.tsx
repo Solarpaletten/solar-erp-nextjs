@@ -47,12 +47,12 @@ export default function LoginPage() {
         // Перенаправляем на Dashboard
         router.push('/itsolar/account/companies')
       } else {
-        const errorData = await response.json()
+        const errorData = await response.json() as LoginResponse
         throw new Error(errorData.error || 'Login failed')
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Ошибка входа в систему'
-
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
