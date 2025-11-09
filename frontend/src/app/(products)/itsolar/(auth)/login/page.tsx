@@ -37,7 +37,7 @@ export default function LoginPage() {
       })
 
       if (response.ok) {
-        const data: LoginResponse = await response.json()
+        const data = await response.json() as LoginResponse
         console.log('🔑 Login response:', data)
 
         if (!data.user) {
@@ -46,7 +46,7 @@ export default function LoginPage() {
 
         router.push('/itsolar/account/companies')
       } else {
-        const errorData: LoginResponse = await response.json()
+        const errorData = await response.json() as LoginResponse
         throw new Error(errorData.error || 'Login failed')
       }
     } catch (err) {
