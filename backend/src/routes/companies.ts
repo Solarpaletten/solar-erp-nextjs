@@ -1,18 +1,22 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 
 const router: Router = Router();
 const prisma = new PrismaClient();
 
-// GET /api/itsolar/account/companies/stats
-router.get('/stats', async (req, res) => {
+router.get('/stats', async (req: Request, res: Response) => {
   try {
+    console.log('📊 Fetching companies stats...');
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT SET');
+    
     const companies = await prisma.companies.findMany({
       where: { is_active: true },
       include: {
         _count: { select: { clients: true } }
       }
     });
+
+    console.log(`✅ Found ${companies.length} companies`);
 
     res.json({
       success: true,
@@ -26,13 +30,15 @@ router.get('/stats', async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Stats error:', error);
-    res.status(500).json({ error: 'Failed' });
+    console.error('❌ Companies stats error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch companies',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
-// POST /api/itsolar/account/companies
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, code, description } = req.body;
 
@@ -61,7 +67,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json({ success: true, company });
   } catch (error) {
-    console.error('Create error:', error);
+    console.error('❌ Create company error:', error);
     res.status(500).json({ error: 'Failed' });
   }
 });
