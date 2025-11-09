@@ -57,12 +57,17 @@ export default function LoginPage() {
     }
   }
 
-  const quickLogin = async () => {
+  const quickLogin = () => {
     setEmail('solar@solar.com')
     setPassword('pass123')
+    // Используем setTimeout для автоматической отправки формы
     setTimeout(() => {
-      const form = document.querySelector('form') as HTMLFormElement
-      form.requestSubmit()
+      if (typeof window !== 'undefined') {
+        const form = window.document.querySelector('form') as HTMLFormElement | null
+        if (form) {
+          form.requestSubmit()
+        }
+      }
     }, 100)
   }
 
