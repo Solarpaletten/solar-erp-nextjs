@@ -4,6 +4,17 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+interface LoginResponse {
+  success: boolean;
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+  };
+  token?: string;
+  error?: string;
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('solar@solar.com')
@@ -26,32 +37,29 @@ export default function LoginPage() {
       })
 
       if (response.ok) {
-        const data = await response.json()
+        const data: LoginResponse = await response.json()
         console.log('🔑 Login response:', data)
 
         if (!data.user) {
           throw new Error('Не удалось получить данные пользователя')
         }
 
-        // Перенаправляем на Dashboard
         router.push('/itsolar/account/companies')
       } else {
-        const errorData = await response.json()
+        const errorData: LoginResponse = await response.json()
         throw new Error(errorData.error || 'Login failed')
       }
-    } catch (error: any) {
-      console.error('❌ Login failed:', error)
-      setError(error.message || 'Ошибка входа в систему')
+    } catch (err) {
+      console.error('❌ Login failed:', err)
+      setError(err instanceof Error ? err.message : 'Ошибка входа в систему')
     } finally {
       setLoading(false)
     }
   }
 
-  // 🎯 Быстрый логин с реальными данными
   const quickLogin = async () => {
     setEmail('solar@solar.com')
     setPassword('pass123')
-    // Небольшая задержка для UI
     setTimeout(() => {
       const form = document.querySelector('form') as HTMLFormElement
       form.requestSubmit()
@@ -60,7 +68,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header Navigation */}
       <nav className="bg-white shadow p-4 flex justify-between items-center">
         <div className="text-2xl font-bold text-blue-600">SOLAR ERP</div>
         <div className="flex space-x-4">
@@ -71,12 +78,9 @@ export default function LoginPage() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="flex-grow flex items-center justify-center px-4">
         <div className="max-w-md w-full">
-          {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            {/* Header */}
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl font-bold">☀️</span>
@@ -85,14 +89,12 @@ export default function LoginPage() {
               <p className="text-gray-600">Real API Connection</p>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
                 <strong>Ошибка:</strong> {error}
               </div>
             )}
 
-            {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -135,7 +137,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Quick Login Button */}
             <div className="pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 text-center mb-4">Быстрый вход с тестовыми данными:</p>
               <button
@@ -147,7 +148,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Test Credentials Info */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h4 className="text-sm font-medium text-blue-800 mb-2">🔧 Тестовые данные (Real API):</h4>
               <div className="text-xs text-blue-700 space-y-1">
@@ -159,7 +159,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Register Link */}
           <div className="text-center mt-6">
             <p className="text-gray-600 text-sm">
               Нет аккаунта?{' '}
@@ -174,7 +173,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="bg-white p-4 text-center text-sm text-gray-500">
         <p>&copy; 2025 Solar ERP. Two-Level Multi-Tenant Architecture.</p>
       </div>
