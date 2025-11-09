@@ -1,3 +1,0 @@
-git add .
-git commit -m "fix dashboard layouts and middleware paths"
-git push origin main
