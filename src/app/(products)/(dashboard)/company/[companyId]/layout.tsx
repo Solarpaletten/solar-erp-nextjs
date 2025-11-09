@@ -14,7 +14,7 @@ export default async function Layout({
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar слева */}
-      <CompanySidebar />
+      <CompanySidebar companyId={companyId} />
       
       {/* Основной контент справа */}
       <div className="flex flex-col flex-1">

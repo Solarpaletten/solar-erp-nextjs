@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, Edit, Copy, Trash2, Save, X, Search, Filter } from 'lucide-react'
+import { Plus, Edit, Copy, Trash2, Save, X } from 'lucide-react'
 
 interface Client {
   id: number

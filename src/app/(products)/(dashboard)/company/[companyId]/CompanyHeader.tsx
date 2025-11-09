@@ -17,7 +17,7 @@ const CompanyHeader: React.FC = () => {
   const companyId = params.companyId as string
 
   const [companyName, setCompanyName] = useState('')
-  const [balance, setBalance] = useState(0)
+  const [balance] = useState(0)
   
   // 🎯 HEADER ELEMENTS STATE
   const [headerElements, setHeaderElements] = useState<HeaderElement[]>([

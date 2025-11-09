@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Users, Building2, Plus, GripVertical } from 'lucide-react';
+import { ChevronRight, Users, Plus, GripVertical } from 'lucide-react';
 
 interface Company {
   id: number;
