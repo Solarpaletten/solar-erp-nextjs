@@ -1,40 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+const JWT_SECRET = process.env.JWT_SECRET || '7d5a2e3f4b1c9d8e0a6f5b2d1e4c3a9b8f7e6d5c4b3a2f1';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const { email, password } = await request.json();
     
-    console.log('🔄 [Frontend Proxy] Forwarding to:', BACKEND_URL);
-
-    const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+    const user = await prisma.users.findUnique({
+      where: { email }
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    const nextResponse = NextResponse.json(data);
     
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
-
-    return nextResponse;
-  } catch (error: any) {
-    console.error('❌ Proxy error:', error);
-    return NextResponse.json(
-      { error: 'Backend connection failed' },
-      { status: 500 }
+    
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isValid) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+    
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '24h' }
     );
+    
+    const response = NextResponse.json({
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username
+      }
+    });
+    
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 86400
+    });
+    
+    return response;
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Login failed' }, { status: 500 });
   }
 }

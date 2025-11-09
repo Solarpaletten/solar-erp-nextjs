@@ -1,34 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
+import { prisma } from '@/lib/db';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const { email, password, username } = await request.json();
     
-    console.log('🔄 [Frontend Proxy] Register →', body.email);
-
-    const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+    const existing = await prisma.users.findUnique({
+      where: { email }
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+    
+    if (existing) {
+      return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
-
-    console.log('✅ [Frontend Proxy] Register successful');
-    return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('❌ [Frontend Proxy] Register error:', error);
-    return NextResponse.json(
-      { error: 'Backend connection failed' },
-      { status: 500 }
-    );
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const user = await prisma.users.create({
+      data: {
+        email,
+        username: username || email.split('@')[0],
+        password_hash: hashedPassword
+      }
+    });
+    
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username
+      }
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Register error:', error);
+    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
   }
 }
