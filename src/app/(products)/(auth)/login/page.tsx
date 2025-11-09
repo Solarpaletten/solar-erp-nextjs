@@ -58,14 +58,17 @@ export default function LoginPage() {
     }
   }
 
-  // 🎯 Быстрый логин с реальными данными
-  const quickLogin = async () => {
+  const quickLogin = () => {
     setEmail('solar@solar.com')
     setPassword('pass123')
     // Небольшая задержка для UI
     setTimeout(() => {
-      const form = document.querySelector('form') as HTMLFormElement
-      form.requestSubmit()
+      if (typeof window !== 'undefined') {
+        const form = window.document.querySelector('form') as HTMLFormElement | null
+        if (form) {
+          form.requestSubmit()
+        }
+      }
     }, 100)
   }
 
