@@ -98,7 +98,7 @@ export default function CompaniesPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/account/companies/stats');
+      const response = await fetch('/api/account/companies');
 
       if (response.ok) {
         const data = await response.json();

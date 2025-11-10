@@ -7,7 +7,7 @@ export async function GET() {
     
     const companiesCount = await prisma.companies.count({
       where: {
-        users_companies: {
+        employees: {  // ← ИСПРАВЛЕНО!
           some: { user_id: userId }
         }
       }
