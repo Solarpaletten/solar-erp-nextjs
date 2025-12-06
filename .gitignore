@@ -89,4 +89,5 @@ Thumbs.db
 
 # Testing
 coverage/
-.nyc_output/
+.nyc_output/.env.local
+.DS_Store
