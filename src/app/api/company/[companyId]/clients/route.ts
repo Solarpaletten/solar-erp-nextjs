@@ -37,7 +37,7 @@ async function verifyCompanyAccess(userId: number, companyId: number): Promise<b
 
 // GET /api/company/[companyId]/clients - List all clients
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ companyId: string }> }
 ) {
   try {
