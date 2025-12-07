@@ -1,3 +1,0 @@
-git add .                                                                                                  
-git commit -m "fix src/app/api/account/companies/route.ts"
-git push origin main
