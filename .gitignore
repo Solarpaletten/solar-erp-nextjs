@@ -91,3 +91,18 @@ Thumbs.db
 coverage/
 .nyc_output/.env.local
 .DS_Store
+
+*.txt
+*.zip
+*.tar.gz
+cookies.txt
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.zip
+*.txt
