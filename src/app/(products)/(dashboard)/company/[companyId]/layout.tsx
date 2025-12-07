@@ -1,7 +1,6 @@
 import React from 'react'
 import CompanySidebar from './CompanySidebar'
 import CompanyHeader from './CompanyHeader'
-
 export default async function Layout({ 
   children,
   params

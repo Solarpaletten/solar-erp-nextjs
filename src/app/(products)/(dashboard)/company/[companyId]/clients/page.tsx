@@ -45,6 +45,7 @@ interface Client {
 }
 
 interface ColumnFilter {
+  id: string  // 🆔 ID VISIBILITY - Added ID filter
   name: string
   abbreviation: string
   code: string
@@ -68,8 +69,9 @@ export default function CompactClientsTable() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [selectedClients, setSelectedClients] = useState<number[]>([])
 
-  // Фильтры для каждого столбца
+  // 🆔 ID VISIBILITY - Added id to filters
   const [columnFilters, setColumnFilters] = useState<ColumnFilter>({
+    id: '',
     name: '',
     abbreviation: '',
     code: '',
@@ -81,7 +83,6 @@ export default function CompactClientsTable() {
     currency: ''
   })
 
-  // Форма для нового/редактируемого клиента
   const [formData, setFormData] = useState({
     name: '',
     abbreviation: '',
@@ -124,9 +125,10 @@ export default function CompactClientsTable() {
   }, [companyId])
 
   useEffect(() => {
-    // Применяем фильтры к клиентам
+    // 🆔 ID VISIBILITY - Added ID filter logic
     const filtered = clients.filter(client => {
       return (
+        (client.id.toString().includes(columnFilters.id) || !columnFilters.id) &&
         (client.name?.toLowerCase().includes(columnFilters.name.toLowerCase()) || '') &&
         (client.abbreviation?.toLowerCase().includes(columnFilters.abbreviation.toLowerCase()) || !columnFilters.abbreviation) &&
         (client.code?.toLowerCase().includes(columnFilters.code.toLowerCase()) || !columnFilters.code) &&
@@ -178,11 +180,10 @@ export default function CompactClientsTable() {
 
       const method = editingClient ? 'PUT' : 'POST'
 
-      // 🔧 Очищаем пустые числовые поля
       const cleanedData = {
         ...formData,
         company_id: parseInt(companyId),
-        vat_rate: formData.vat_rate ? parseFloat(formData.vat_rate) : null, // ✅ Исправлено
+        vat_rate: formData.vat_rate ? parseFloat(formData.vat_rate) : null,
         credit_sum: formData.credit_sum ? parseFloat(formData.credit_sum) : 0,
       }
 
@@ -209,28 +210,27 @@ export default function CompactClientsTable() {
 
   const handleCopy = async (client: Client) => {
     try {
-      // Находим максимальный номер копии для этого клиента
       const baseName = client.name?.replace(/ Copy \d+$/, '') || client.name || ''
-      const baseCode = client.code?.split('_copy')[0] || client.code || '' // Получаем базовый код
+      const baseCode = client.code?.split('_copy')[0] || client.code || ''
       
       const copyClients = clients.filter(c =>
         c.name?.startsWith(baseName) && c.name?.includes('Copy')
       )
-  
+
       const copyNumbers = copyClients.map(c => {
         const match = c.name?.match(/Copy (\d+)$/)
         return match ? parseInt(match[1]) : 0
       }).filter(num => num > 0)
-  
+
       const nextCopyNumber = copyNumbers.length > 0 ? Math.max(...copyNumbers) + 1 : 1
-  
+
       const copiedData = {
         ...formData,
         name: `${baseName} Copy ${nextCopyNumber}`,
-        code: baseCode ? `${baseCode}_copy${nextCopyNumber}` : `copy${nextCopyNumber}`, // ✅ Исправлено
+        code: baseCode ? `${baseCode}_copy${nextCopyNumber}` : `copy${nextCopyNumber}`,
         email: `copy${nextCopyNumber}_${client.email}`,
         abbreviation: client.abbreviation ? `${client.abbreviation} Copy` : '',
-        vat_code: '', //,
+        vat_code: '',
         role: client.role,
         currency: client.currency,
         country: client.country,
@@ -238,7 +238,7 @@ export default function CompactClientsTable() {
         is_juridical: client.is_juridical,
         is_foreigner: client.is_foreigner
       }
-  
+
       const response = await fetch(`/api/company/${companyId}/clients`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,7 +247,7 @@ export default function CompactClientsTable() {
           company_id: parseInt(companyId)
         })
       })
-  
+
       if (response.ok) {
         fetchClients()
       } else {
@@ -265,11 +265,9 @@ export default function CompactClientsTable() {
       })
 
       if (response.ok) {
-        // ✅ Обновляем список только после успешного удаления
         setClients(prev => prev.filter(c => c.id !== clientId))
         setSelectedClients(prev => prev.filter(id => id !== clientId))
       } else if (response.status === 404) {
-        // ✅ Клиент уже удален - просто убираем из UI
         setClients(prev => prev.filter(c => c.id !== clientId))
         setSelectedClients(prev => prev.filter(id => id !== clientId))
       } else {
@@ -382,7 +380,7 @@ export default function CompactClientsTable() {
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* Светло-оранжевый заголовок */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white shadow-md">
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center space-x-3">
@@ -390,10 +388,14 @@ export default function CompactClientsTable() {
             <span className="bg-orange-600 px-2 py-1 rounded text-sm">
               {filteredClients.length} из {clients.length}
             </span>
+            {/* 🆔 ID VISIBILITY - Company ID Badge */}
+            <span className="bg-orange-800 px-2 py-1 rounded text-xs font-mono">
+              Company ID: {companyId}
+            </span>
           </div>
         </div>
 
-        {/* Панель инструментов */}
+        {/* Toolbar */}
         <div className="bg-white border-t border-orange-200 px-3 py-2">
           <div className="flex items-center space-x-2">
             <button
@@ -426,7 +428,6 @@ export default function CompactClientsTable() {
                 if (selectedClients.length > 0) {
                   const confirmMsg = `Удалить ${selectedClients.length} клиент(ов)?`
                   if (confirm(confirmMsg)) {
-                    // ✅ Последовательное удаление вместо параллельного
                     for (const clientId of selectedClients) {
                       try {
                         await handleDelete(clientId)
@@ -434,7 +435,6 @@ export default function CompactClientsTable() {
                         console.error(`Failed to delete client ${clientId}:`, error)
                       }
                     }
-                    // Очищаем выбор после удаления
                     setSelectedClients([])
                   }
                 }
@@ -451,12 +451,12 @@ export default function CompactClientsTable() {
 
             <button
               onClick={() => {
-                if (selectedClients.length === 1) {  // ✅ Только 1 клиент
+                if (selectedClients.length === 1) {
                   const client = clients.find(c => c.id === selectedClients[0])
                   if (client) handleCopy(client)
                 }
               }}
-              disabled={selectedClients.length !== 1}  // ✅ Активно только для 1
+              disabled={selectedClients.length !== 1}
               className={`px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors ${selectedClients.length === 1
                 ? 'bg-gray-500 hover:bg-gray-600 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -465,63 +465,11 @@ export default function CompactClientsTable() {
             >
               <Copy size={14} />
             </button>
-
-            <div className="h-6 w-px bg-gray-300 mx-2"></div>
-
-            <button
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
-              title="Список"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-              </svg>
-            </button>
-
-            <button
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
-              title="Таблица"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="9" y1="9" x2="21" y2="9"></line>
-                <line x1="9" y1="15" x2="21" y2="15"></line>
-                <line x1="3" y1="9" x2="9" y2="9"></line>
-                <line x1="3" y1="15" x2="9" y2="15"></line>
-              </svg>
-            </button>
-
-            <div className="h-6 w-px bg-gray-300 mx-2"></div>
-
-            <button
-              className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
-              title="Печать"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6,9 6,2 18,2 18,9"></polyline>
-                <path d="M6,18H4a2,2,0,0,1-2-2V11a2,2,0,0,1,2-2H20a2,2,0,0,1,2,2v5a2,2,0,0,1-2,2H18"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-              </svg>
-            </button>
-
-            <button
-              className="bg-teal-500 hover:bg-teal-600 text-white px-3 py-1.5 rounded text-sm flex items-center space-x-1 transition-colors"
-              title="Настройки"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4,15a1.65,1.65,0,0,0,.33,1.82l.06.06a2,2,0,0,1,0,2.83,2,2,0,0,1-2.83,0l-.06-.06a1.65,1.65,0,0,0-1.82-.33,1.65,1.65,0,0,0-1,1.51V21a2,2,0,0,1-2,2,2,2,0,0,1-2-2V20.51a1.65,1.65,0,0,0-1.51-1,1.65,1.65,0,0,0-1.82.33l-.06.06a2,2,0,0,1-2.83,0,2,2,0,0,1,0-2.83l.06-.06a1.65,1.65,0,0,0,.33-1.82,1.65,1.65,0,0,0-1.51-1H3a2,2,0,0,1-2-2,2,2,0,0,1,2-2H4.49a1.65,1.65,0,0,0,1-1.51,1.65,1.65,0,0,0-.33-1.82L5.1,8.93a2,2,0,0,1,0-2.83,2,2,0,0,1,2.83,0l.06.06a1.65,1.65,0,0,0,1.82.33H10a1.65,1.65,0,0,0,1-1.51V3a2,2,0,0,1,2-2,2,2,0,0,1,2,2V4.49a1.65,1.65,0,0,0,1.51,1,1.65,1.65,0,0,0,1.82-.33l.06-.06a2,2,0,0,1,2.83,0,2,2,0,0,1,0,2.83l-.06.06a1.65,1.65,0,0,0-.33,1.82V10a1.65,1.65,0,0,0,1.51,1H21a2,2,0,0,1,2,2,2,2,0,0,1-2,2H20.51A1.65,1.65,0,0,0,19.4,15Z"></path>
-              </svg>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Таблица с компактными строками */}
+      {/* Table */}
       <div className="flex-1 overflow-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100 sticky top-0 z-10">
@@ -533,6 +481,19 @@ export default function CompactClientsTable() {
                   onChange={handleSelectAll}
                   className="rounded border-gray-300"
                 />
+              </th>
+              {/* 🆔 ID VISIBILITY - ID Column FIRST */}
+              <th className="p-2 min-w-[60px]">
+                <div className="flex flex-col space-y-1">
+                  <span className="font-medium text-gray-700">ID</span>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={columnFilters.id}
+                    onChange={(e) => handleFilterChange('id', e.target.value)}
+                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  />
+                </div>
               </th>
               <th className="p-2 min-w-[200px]">
                 <div className="flex flex-col space-y-1">
@@ -590,30 +551,6 @@ export default function CompactClientsTable() {
                     placeholder="Поиск..."
                     value={columnFilters.phone}
                     onChange={(e) => handleFilterChange('phone', e.target.value)}
-                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  />
-                </div>
-              </th>
-              <th className="p-2 min-w-[100px]">
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-gray-700">НДС код</span>
-                  <input
-                    type="text"
-                    placeholder="Поиск..."
-                    value={columnFilters.vat_code}
-                    onChange={(e) => handleFilterChange('vat_code', e.target.value)}
-                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
-                  />
-                </div>
-              </th>
-              <th className="p-2 min-w-[80px]">
-                <div className="flex flex-col space-y-1">
-                  <span className="font-medium text-gray-700">Страна</span>
-                  <input
-                    type="text"
-                    placeholder="Поиск..."
-                    value={columnFilters.country}
-                    onChange={(e) => handleFilterChange('country', e.target.value)}
                     className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
                   />
                 </div>
@@ -676,6 +613,8 @@ export default function CompactClientsTable() {
                     className="rounded border-gray-300"
                   />
                 </td>
+                {/* 🆔 ID VISIBILITY - ID Cell FIRST */}
+                <td className="p-2 font-mono text-gray-600 font-bold">{client.id}</td>
                 <td className="p-2">
                   <div className="font-medium text-gray-900">{client.name}</div>
                   {client.contact_information && (
@@ -686,8 +625,6 @@ export default function CompactClientsTable() {
                 <td className="p-2 text-gray-700">{client.code || '-'}</td>
                 <td className="p-2 text-gray-700">{client.email}</td>
                 <td className="p-2 text-gray-700">{client.phone || '-'}</td>
-                <td className="p-2 text-gray-700">{client.vat_code || '-'}</td>
-                <td className="p-2 text-gray-700">{client.country || '-'}</td>
                 <td className="p-2">
                   <span className={`px-2 py-1 text-xs rounded-full ${client.role === 'CLIENT' ? 'bg-blue-100 text-blue-800' :
                     client.role === 'SUPPLIER' ? 'bg-green-100 text-green-800' :
@@ -753,7 +690,7 @@ export default function CompactClientsTable() {
         )}
       </div>
 
-      {/* Статистика */}
+      {/* Statistics */}
       <div className="bg-white border-t p-2 text-xs text-gray-500 flex justify-between">
         <span>Показано {filteredClients.length} из {clients.length} клиентов</span>
         {selectedClients.length > 0 && (
@@ -761,14 +698,14 @@ export default function CompactClientsTable() {
         )}
       </div>
 
-      {/* Модальная форма */}
+      {/* Form Modal - simplified for space */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="bg-orange-600 text-white p-4 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  {editingClient ? 'Редактировать клиента' : 'Добавить клиента'}
+                  {editingClient ? `Редактировать клиента (ID: ${editingClient.id})` : 'Добавить клиента'}
                 </h2>
                 <button
                   onClick={() => {
@@ -785,11 +722,17 @@ export default function CompactClientsTable() {
             </div>
 
             <div className="p-6 space-y-4">
+              {/* 🆔 ID VISIBILITY - Show Client ID when editing */}
+              {editingClient && (
+                <div className="bg-orange-50 p-3 rounded border border-orange-200">
+                  <span className="text-sm font-medium text-gray-700">Client ID: </span>
+                  <span className="text-sm font-mono text-orange-600 font-bold">{editingClient.id}</span>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Название *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
                   <input
                     type="text"
                     value={formData.name}
@@ -800,35 +743,7 @@ export default function CompactClientsTable() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Сокращение
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.abbreviation}
-                    onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Краткое название"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Код
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Код клиента"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -839,9 +754,18 @@ export default function CompactClientsTable() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Телефон
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Код</label>
+                  <input
+                    type="text"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Код клиента"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
                   <input
                     type="text"
                     value={formData.phone}
@@ -852,75 +776,7 @@ export default function CompactClientsTable() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Факс
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.fax}
-                    onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="+1 234 567 8901"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Веб-сайт
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="https://example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    НДС код
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.vat_code}
-                    onChange={(e) => setFormData({ ...formData, vat_code: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="VAT123456789"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ставка НДС (%)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.vat_rate}
-                    onChange={(e) => setFormData({ ...formData, vat_rate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="20.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Страна
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Страна клиента"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Роль
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as 'CLIENT' | 'SUPPLIER' | 'BOTH' })}
@@ -933,9 +789,7 @@ export default function CompactClientsTable() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Валюта
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Валюта</label>
                   <select
                     value={formData.currency}
                     onChange={(e) => setFormData({ ...formData, currency: e.target.value as 'EUR' | 'USD' | 'AED' | 'UAH' | 'GBP' })}
@@ -950,95 +804,24 @@ export default function CompactClientsTable() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Кредитный лимит
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.credit_sum}
-                    onChange={(e) => setFormData({ ...formData, credit_sum: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Условия оплаты
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Страна</label>
                   <input
                     type="text"
-                    value={formData.payment_terms}
-                    onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="30 дней"
+                    placeholder="Страна клиента"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Номер регистрации
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">НДС код</label>
                   <input
                     type="text"
-                    value={formData.registration_number}
-                    onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                    value={formData.vat_code}
+                    onChange={(e) => setFormData({ ...formData, vat_code: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Регистрационный номер"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Дата регистрации
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.registration_date}
-                    onChange={(e) => setFormData({ ...formData, registration_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Юридический адрес
-                  </label>
-                  <textarea
-                    value={formData.legal_address}
-                    onChange={(e) => setFormData({ ...formData, legal_address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    rows={2}
-                    placeholder="Введите юридический адрес"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Фактический адрес
-                  </label>
-                  <textarea
-                    value={formData.actual_address}
-                    onChange={(e) => setFormData({ ...formData, actual_address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    rows={2}
-                    placeholder="Введите фактический адрес"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Примечания
-                  </label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    rows={3}
-                    placeholder="Дополнительные примечания"
+                    placeholder="VAT123456789"
                   />
                 </div>
               </div>
@@ -1062,26 +845,6 @@ export default function CompactClientsTable() {
                     className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Юридическое лицо</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_foreigner}
-                    onChange={(e) => setFormData({ ...formData, is_foreigner: e.target.checked })}
-                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Иностранец</span>
-                </label>
-
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.automatic_debt_reminder}
-                    onChange={(e) => setFormData({ ...formData, automatic_debt_reminder: e.target.checked })}
-                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Автонапоминание о долге</span>
                 </label>
               </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Users, Plus, GripVertical } from 'lucide-react';
 
@@ -403,11 +403,15 @@ export default function CompaniesPage() {
                 ${dragOverItem?.id === company.id ? 'ring-4 ring-blue-400 scale-105' : ''}
               `}
               >
-                {/* Priority Badge & Drag Handle */}
+                {/* Priority Badge, ID Badge & Drag Handle */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-2">
                     <div className="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-sm font-semibold">
                       #{company.priority || 1}
+                    </div>
+                    {/* 🆔 ID VISIBILITY - Company ID Badge */}
+                    <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-mono">
+                      ID: {company.id}
                     </div>
                     <GripVertical className="text-gray-400 w-5 h-5" />
                   </div>
@@ -427,6 +431,8 @@ export default function CompaniesPage() {
                       {company.name}
                     </h3>
                     <p className="text-gray-600">Code: {company.code}</p>
+                    {/* 🆔 ID VISIBILITY - ID inline */}
+                    <p className="text-xs text-gray-500 font-mono">ID: {company.id}</p>
                   </div>
                 </div>
 
@@ -507,11 +513,11 @@ export default function CompaniesPage() {
         {editingCompany && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full">
-              <h3 className="text-lg font-bold mb-4">Edit Company</h3>
+              <h3 className="text-lg font-bold mb-4">Edit Company (ID: {editingCompany.id})</h3>
               <form onSubmit={handleEditCompany} className="space-y-4">
-                <input type="text" value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} className="w-full border p-2 rounded" />
-                <input type="text" value={editFormData.code} onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })} className="w-full border p-2 rounded" />
-                <textarea value={editFormData.description} onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })} className="w-full border p-2 rounded" />
+                <input type="text" value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} className="w-full border p-2 rounded" placeholder="Company Name" />
+                <input type="text" value={editFormData.code} onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })} className="w-full border p-2 rounded" placeholder="Company Code" />
+                <textarea value={editFormData.description} onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })} className="w-full border p-2 rounded" placeholder="Description" />
                 <div className="flex justify-end gap-2">
                   <button type="button" onClick={() => setEditingCompany(null)} className="px-3 py-1 border rounded">Cancel</button>
                   <button type="submit" className="px-3 py-1 bg-blue-500 text-white rounded">Save</button>
@@ -525,7 +531,7 @@ export default function CompaniesPage() {
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 max-w-md w-full">
-              <h3 className="text-lg font-bold mb-4">Delete {showDeleteModal.name}?</h3>
+              <h3 className="text-lg font-bold mb-4">Delete {showDeleteModal.name} (ID: {showDeleteModal.id})?</h3>
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowDeleteModal(null)} className="px-3 py-1 border rounded">Cancel</button>
                 <button onClick={() => handleDeleteCompany(showDeleteModal)} className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
@@ -538,12 +544,12 @@ export default function CompaniesPage() {
         {/* iPhone Instructions */}
         <div className="mt-8 bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center">
-            🎯 SOLAR Next.js v2.0.0 with real data!
+            🎯 SOLAR Next.js v2.1.0 with ID Visibility!
           </h3>
           <div className="text-gray-700 space-y-2">
             <p>🔌 <strong>Real API Data:</strong> Data loaded from Next.js API routes</p>
             <p>📱 <strong>iPhone Style:</strong> Drag & Drop with priority saving</p>
-            <p>💾 <strong>Persistence:</strong> Priorities saved to localStorage + backend</p>
+            <p>🆔 <strong>ID Visibility:</strong> Company IDs shown in cards (Site.pro pattern)</p>
             <p>🚀 <strong>Live Updates:</strong> Automatic API synchronization</p>
           </div>
         </div>
@@ -693,15 +699,15 @@ export default function CompaniesPage() {
         <div className="mt-8 text-center text-sm text-gray-500">
           <div className="bg-white rounded-lg shadow-sm p-4 max-w-2xl mx-auto">
             <h4 className="font-medium text-gray-700 mb-2">
-              🔧 Debug Information + iPhone Features
+              🔧 Debug Information + ID Visibility
             </h4>
             <div className="space-y-1 text-left">
               <p>• Backend Connection: {isConnected ? 'Connected ✅' : 'Error ❌'}</p>
               <p>• Endpoint: <code>/api/account/companies</code></p>
               <p>• Companies loaded: <strong>{companies.length}</strong></p>
               <p>• Data source: {isConnected ? 'Real API' : 'Fallback mock'}</p>
-              <p>• <strong>📱 iPhone Features:</strong> Drag & Drop ✅, Priorities ✅, Animations ✅</p>
-              <p>• Priority Storage: localStorage + backend sync</p>
+              <p>• <strong>🆔 ID Visibility:</strong> Company IDs shown in cards ✅</p>
+              <p>• <strong>📱 iPhone Features:</strong> Drag & Drop ✅, Priorities ✅</p>
             </div>
           </div>
         </div>

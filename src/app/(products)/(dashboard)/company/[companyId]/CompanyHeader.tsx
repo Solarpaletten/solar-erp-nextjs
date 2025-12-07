@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { GripVertical } from 'lucide-react'
 
@@ -78,7 +78,7 @@ const CompanyHeader: React.FC = () => {
       }
     }
     
-    console.log('🏢 CompanyHeader with draggable elements loaded:', { name, companyId })
+    console.log('🏢 CompanyHeader with ID visibility loaded:', { name, companyId })
   }, [companyId])
 
   // 💾 СОХРАНЕНИЕ ПОЗИЦИЙ
@@ -138,7 +138,8 @@ const CompanyHeader: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="text-right">
               <div className="text-sm font-medium">{companyName}</div>
-              <div className="text-xs opacity-75">Company ID: {companyId}</div>
+              {/* 🆔 ID VISIBILITY - Company ID in header */}
+              <div className="text-xs opacity-75 font-mono">Company ID: {companyId}</div>
             </div>
             <div className="w-9 h-9 rounded-full bg-white overflow-hidden">
               <div className="w-full h-full flex items-center justify-center text-[#f7931e] font-bold">
@@ -218,13 +219,18 @@ const CompanyHeader: React.FC = () => {
         {leftElements.map(renderDraggableElement)}
       </div>
 
-      {/* CENTER ZONE */}
+      {/* CENTER ZONE - 🆔 Company ID Badge */}
       <div 
         className={getDropZoneStyles('center')}
         onDragOver={(e) => handleZoneDragOver(e, 'center')}
         onDragLeave={handleZoneDragLeave}
         onDrop={(e) => handleZoneDrop(e, 'center')}
       >
+        {centerElements.length === 0 && (
+          <div className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-mono">
+            🆔 ID: {companyId}
+          </div>
+        )}
         {centerElements.map(renderDraggableElement)}
       </div>
 

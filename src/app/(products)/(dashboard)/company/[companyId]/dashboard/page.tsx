@@ -21,8 +21,25 @@ export default function CompanyDashboardPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">📊 Company Dashboard</h1>
         <p className="text-gray-600 mt-1">
-          Welcome to {companyName} (ID: {companyId})
+          Welcome to {companyName}
         </p>
+        {/* 🆔 ID VISIBILITY - Company ID prominently displayed */}
+        <p className="text-sm text-gray-500 font-mono mt-1">
+          Company ID: {companyId}
+        </p>
+      </div>
+
+      {/* 🆔 ID VISIBILITY - Company Info Card */}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6 border-l-4 border-orange-500">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">{companyName}</h3>
+            <p className="text-sm text-gray-500">Active Company</p>
+          </div>
+          <div className="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg font-mono text-lg font-bold">
+            ID: {companyId}
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -261,6 +278,14 @@ export default function CompanyDashboardPage() {
               <span className="text-gray-600">Active Users</span>
               <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
                 8 online
+              </span>
+            </div>
+
+            {/* 🆔 ID VISIBILITY - Company ID in System Health */}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Company ID</span>
+              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-mono font-bold">
+                {companyId}
               </span>
             </div>
 

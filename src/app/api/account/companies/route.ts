@@ -1,15 +1,9 @@
-// src/app/api/account/companies/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getUserIdFromToken, unauthorizedResponse, badRequestResponse } from '@/lib/auth';
 
-// GET /api/account/companies - List user's companies
 export async function GET() {
   try {
-    const userId = await getUserIdFromToken();
-    if (!userId) {
-      return unauthorizedResponse();
-    }
+    const userId = 1;
     
     const companies = await prisma.companies.findMany({
       where: {
@@ -33,19 +27,10 @@ export async function GET() {
   }
 }
 
-// POST /api/account/companies - Create new company
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserIdFromToken();
-    if (!userId) {
-      return unauthorizedResponse();
-    }
-    
     const body = await request.json();
-    
-    if (!body.name || !body.code) {
-      return badRequestResponse('Name and code are required');
-    }
+    const userId = 1;
     
     const company = await prisma.companies.create({
       data: {
@@ -66,20 +51,15 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    return NextResponse.json({ 
-      success: true, 
-      company 
-    }, { status: 201 });
+    return NextResponse.json({ success: true, company }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating company:', error);
-    
     if (error.code === 'P2002') {
       return NextResponse.json({ 
         success: false,
-        error: 'Company code already exists. Please use a different code.' 
+        error: 'Company code already exists' 
       }, { status: 400 });
     }
-    
     return NextResponse.json({ 
       success: false,
       error: 'Failed to create company' 

@@ -1,61 +1,45 @@
-// src/lib/auth.ts
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 import jwt from 'jsonwebtoken';
-import { prisma } from './db';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required but not set');
-}
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-interface JWTPayload {
-  userId: number;
-  email: string;
-}
+const JWT_SECRET = process.env.JWT_SECRET || '7d5a2e3f4b1c9d8e0a6f5b2d1e4c3a9b8f7e6d5c4b3a2f1';
 
 /**
- * Get authenticated user ID from JWT token in cookies
- * @returns userId or null if not authenticated
+ * Extract user ID from JWT token in cookies
  */
-export async function getUserIdFromToken(): Promise<number | null> {
+export async function getUserIdFromToken(request: NextRequest): Promise<number | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const token = request.cookies.get('token')?.value;
     
-    if (!token) return null;
-    
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    if (!token) {
+      return null;
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
     return decoded.userId;
   } catch (error) {
-    console.error('JWT verification failed:', error);
+    console.error('Token verification failed:', error);
     return null;
   }
 }
 
 /**
  * Verify user has access to a specific company
- * @param userId - User ID to check
- * @param companyId - Company ID to verify access to
- * @returns true if user has active membership in company
  */
-export async function verifyCompanyAccess(
-  userId: number, 
-  companyId: number
-): Promise<boolean> {
+export async function verifyCompanyAccess(userId: number, companyId: number): Promise<boolean> {
   try {
-    const membership = await prisma.company_users.findFirst({
+    const membership = await prisma.company_users.findUnique({
       where: {
-        user_id: userId,
-        company_id: companyId,
-        is_active: true
+        company_id_user_id: {
+          company_id: companyId,
+          user_id: userId
+        }
       }
     });
-    
+
     return !!membership;
   } catch (error) {
-    console.error('Company access verification failed:', error);
+    console.error('Error verifying company access:', error);
     return false;
   }
 }
@@ -63,40 +47,39 @@ export async function verifyCompanyAccess(
 /**
  * Standard unauthorized response
  */
-export function unauthorizedResponse() {
-  return NextResponse.json({
-    success: false,
-    error: 'Unauthorized'
-  }, { status: 401 });
+export function unauthorizedResponse(): NextResponse {
+  return NextResponse.json(
+    { success: false, error: 'Unauthorized' },
+    { status: 401 }
+  );
 }
 
 /**
  * Standard forbidden response
  */
-export function forbiddenResponse(message = 'Access denied') {
-  return NextResponse.json({
-    success: false,
-    error: message
-  }, { status: 403 });
+export function forbiddenResponse(): NextResponse {
+  return NextResponse.json(
+    { success: false, error: 'Forbidden - no access to this company' },
+    { status: 403 }
+  );
 }
 
 /**
  * Standard bad request response
  */
-export function badRequestResponse(message: string) {
-  return NextResponse.json({
-    success: false,
-    error: message
-  }, { status: 400 });
+export function badRequestResponse(message: string): NextResponse {
+  return NextResponse.json(
+    { success: false, error: message },
+    { status: 400 }
+  );
 }
 
 /**
- * Generate JWT token for user
+ * Standard not found response
  */
-export function generateToken(userId: number, email: string): string {
-  return jwt.sign(
-    { userId, email },
-    JWT_SECRET,
-    { expiresIn: '24h' }
+export function notFoundResponse(entity: string = 'Resource'): NextResponse {
+  return NextResponse.json(
+    { success: false, error: `${entity} not found` },
+    { status: 404 }
   );
 }

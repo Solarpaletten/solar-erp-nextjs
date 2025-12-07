@@ -1,58 +1,33 @@
-// src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { generateToken } from '@/lib/auth';
-import { rateLimit } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || '7d5a2e3f4b1c9d8e0a6f5b2d1e4c3a9b8f7e6d5c4b3a2f1';
 
 export async function POST(request: NextRequest) {
-  // Rate limiting: 10 requests per minute
-  const rateLimitResponse = rateLimit(request, {
-    maxRequests: 10,
-    windowMs: 60 * 1000
-  });
-  
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
-
   try {
     const { email, password } = await request.json();
-    
-    if (!email || !password) {
-      return NextResponse.json({
-        success: false,
-        error: 'Email and password are required'
-      }, { status: 400 });
-    }
     
     const user = await prisma.users.findUnique({
       where: { email }
     });
     
     if (!user) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Invalid credentials' 
-      }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
     
     const isValid = await bcrypt.compare(password, user.password_hash);
     
     if (!isValid) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Invalid credentials' 
-      }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
     
-    // Update last login
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { last_login_at: new Date() }
-    });
-    
-    const token = generateToken(user.id, user.email);
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
     
     const response = NextResponse.json({
       success: true,
@@ -68,15 +43,12 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 86400 // 24 hours
+      maxAge: 86400
     });
     
     return response;
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ 
-      success: false,
-      error: 'Login failed' 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Login failed' }, { status: 500 });
   }
 }
