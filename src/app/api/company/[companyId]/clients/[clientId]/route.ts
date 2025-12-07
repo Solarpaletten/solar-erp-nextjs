@@ -158,7 +158,7 @@ export async function PUT(
 
 // DELETE /api/company/[companyId]/clients/[clientId] - Delete client
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ companyId: string; clientId: string }> }
 ) {
   try {
