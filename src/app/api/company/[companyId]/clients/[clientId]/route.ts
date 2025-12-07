@@ -37,7 +37,7 @@ async function verifyCompanyAccess(userId: number, companyId: number): Promise<b
 
 // PUT /api/company/[companyId]/clients/[clientId] - Update client
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ companyId: string; clientId: string }> }
 ) {
   try {
