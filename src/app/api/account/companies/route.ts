@@ -1,9 +1,15 @@
+// src/app/api/account/companies/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getUserIdFromToken, unauthorizedResponse, badRequestResponse } from '@/lib/auth';
 
+// GET /api/account/companies - List user's companies
 export async function GET() {
   try {
-    const userId = 1; // TODO: из JWT token
+    const userId = await getUserIdFromToken();
+    if (!userId) {
+      return unauthorizedResponse();
+    }
     
     const companies = await prisma.companies.findMany({
       where: {
@@ -27,10 +33,19 @@ export async function GET() {
   }
 }
 
+// POST /api/account/companies - Create new company
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getUserIdFromToken();
+    if (!userId) {
+      return unauthorizedResponse();
+    }
+    
     const body = await request.json();
-    const userId = 1; // TODO: из JWT token
+    
+    if (!body.name || !body.code) {
+      return badRequestResponse('Name and code are required');
+    }
     
     const company = await prisma.companies.create({
       data: {
@@ -58,7 +73,6 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating company:', error);
     
-    // Обработка ошибки уникальности кода
     if (error.code === 'P2002') {
       return NextResponse.json({ 
         success: false,
@@ -69,70 +83,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: false,
       error: 'Failed to create company' 
-    }, { status: 500 });
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
-    if (!id) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Company ID is required' 
-      }, { status: 400 });
-    }
-    
-    const body = await request.json();
-    
-    const company = await prisma.companies.update({
-      where: { id: parseInt(id) },
-      data: {
-        name: body.name,
-        code: body.code,
-        description: body.description,
-      }
-    });
-    
-    return NextResponse.json({ 
-      success: true, 
-      company 
-    });
-  } catch (error: any) {
-    console.error('Error updating company:', error);
-    return NextResponse.json({ 
-      success: false,
-      error: 'Failed to update company' 
-    }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
-    if (!id) {
-      return NextResponse.json({ 
-        success: false,
-        error: 'Company ID is required' 
-      }, { status: 400 });
-    }
-    
-    await prisma.companies.delete({
-      where: { id: parseInt(id) }
-    });
-    
-    return NextResponse.json({ 
-      success: true 
-    });
-  } catch (error: any) {
-    console.error('Error deleting company:', error);
-    return NextResponse.json({ 
-      success: false,
-      error: 'Failed to delete company' 
     }, { status: 500 });
   }
 }

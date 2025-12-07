@@ -1,25 +1,32 @@
 // src/lib/auth.ts
-
+import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { NextResponse } from 'next/server';
+import { prisma } from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || '7d5a2e3f4b1c9d8e0a6f5b2d1e4c3a9b8f7e6d5c4b3a2f1';
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required but not set');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+interface JWTPayload {
+  userId: number;
+  email: string;
+}
 
 /**
- * Extract and verify JWT token from cookies
- * @returns User ID if token is valid, null otherwise
+ * Get authenticated user ID from JWT token in cookies
+ * @returns userId or null if not authenticated
  */
 export async function getUserIdFromToken(): Promise<number | null> {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
     
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded.userId;
   } catch (error) {
     console.error('JWT verification failed:', error);
@@ -28,57 +35,68 @@ export async function getUserIdFromToken(): Promise<number | null> {
 }
 
 /**
- * Create standardized unauthorized response
+ * Verify user has access to a specific company
+ * @param userId - User ID to check
+ * @param companyId - Company ID to verify access to
+ * @returns true if user has active membership in company
  */
-export function unauthorizedResponse(message: string = 'Unauthorized') {
+export async function verifyCompanyAccess(
+  userId: number, 
+  companyId: number
+): Promise<boolean> {
+  try {
+    const membership = await prisma.company_users.findFirst({
+      where: {
+        user_id: userId,
+        company_id: companyId,
+        is_active: true
+      }
+    });
+    
+    return !!membership;
+  } catch (error) {
+    console.error('Company access verification failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Standard unauthorized response
+ */
+export function unauthorizedResponse() {
   return NextResponse.json({
     success: false,
-    error: message,
-    code: 'UNAUTHORIZED'
+    error: 'Unauthorized'
   }, { status: 401 });
 }
 
 /**
- * Create standardized forbidden response
+ * Standard forbidden response
  */
-export function forbiddenResponse(message: string = 'Access denied') {
+export function forbiddenResponse(message = 'Access denied') {
   return NextResponse.json({
     success: false,
-    error: message,
-    code: 'FORBIDDEN'
+    error: message
   }, { status: 403 });
 }
 
 /**
- * Create standardized validation error response
+ * Standard bad request response
  */
-export function validationErrorResponse(message: string, details?: any) {
+export function badRequestResponse(message: string) {
   return NextResponse.json({
     success: false,
-    error: message,
-    code: 'VALIDATION_ERROR',
-    details
+    error: message
   }, { status: 400 });
 }
 
 /**
- * Create standardized server error response
+ * Generate JWT token for user
  */
-export function serverErrorResponse(message: string = 'Internal server error') {
-  return NextResponse.json({
-    success: false,
-    error: message,
-    code: 'SERVER_ERROR'
-  }, { status: 500 });
-}
-
-/**
- * Create standardized not found response
- */
-export function notFoundResponse(message: string = 'Resource not found') {
-  return NextResponse.json({
-    success: false,
-    error: message,
-    code: 'NOT_FOUND'
-  }, { status: 404 });
+export function generateToken(userId: number, email: string): string {
+  return jwt.sign(
+    { userId, email },
+    JWT_SECRET,
+    { expiresIn: '24h' }
+  );
 }
