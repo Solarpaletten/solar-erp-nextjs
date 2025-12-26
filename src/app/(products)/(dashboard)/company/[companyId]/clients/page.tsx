@@ -1,6 +1,6 @@
 // src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
 // Sprint 1.2 — Professional Clients Page with Horizontal Scroll (Site.pro-level)
-// FIXED: Hydration error, unused imports
+// FIXED: Hydration error, unused imports, useEffect return
 
 'use client';
 
@@ -313,17 +313,20 @@ export default function ClientsPage() {
     }
   };
 
+  // FIXED: Always return cleanup function
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', updateScrollButtons);
-      // Initial check after a small delay to ensure layout is complete
-      const timer = setTimeout(updateScrollButtons, 100);
-      return () => {
-        container.removeEventListener('scroll', updateScrollButtons);
-        clearTimeout(timer);
-      };
+    if (!container) {
+      return; // Early return - no cleanup needed
     }
+    
+    container.addEventListener('scroll', updateScrollButtons);
+    const timer = setTimeout(updateScrollButtons, 100);
+    
+    return () => {
+      container.removeEventListener('scroll', updateScrollButtons);
+      clearTimeout(timer);
+    };
   }, [updateScrollButtons, clients, visibleColumns]);
 
   // ============================================
