@@ -153,3 +153,7 @@ DELETE /api/company/{companyId}/products/{productId}  - Delete product
 git commit -m "HOTFIX: useEffect return value"
 
 git add . && git commit -m "FIX: Toolbar separated from table scroll" && git push
+
+git add .
+git commit -m "RESPONSIVE: Sidebar"                                       
+git push
