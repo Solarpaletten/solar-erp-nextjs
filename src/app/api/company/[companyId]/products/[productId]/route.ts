@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { 
-  getUserIdFromToken, 
-  verifyCompanyAccess,
-  unauthorizedResponse,
-  forbiddenResponse,
-  badRequestResponse
-} from '@/lib/auth';
 
-/**
- * GET /api/company/[companyId]/products/[productId]
- * Returns a single product
- */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ companyId: string; productId: string }> }
 ) {
   try {
@@ -21,22 +10,10 @@ export async function GET(
     const companyIdNum = parseInt(companyId);
     const productIdNum = parseInt(productId);
 
-    // Auth check
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return unauthorizedResponse();
-    }
-
-    // Verify user has access to this company
-    const hasAccess = await verifyCompanyAccess(userId, companyIdNum);
-    if (!hasAccess) {
-      return forbiddenResponse();
-    }
-
-    // Fetch product
-    const product = await prisma.products.findUnique({
+    const product = await prisma.products.findFirst({
       where: {
-        id: productIdNum
+        id: productIdNum,
+        company_id: companyIdNum
       }
     });
 
@@ -47,16 +24,7 @@ export async function GET(
       );
     }
 
-    // Verify product belongs to this company
-    if (product.company_id !== companyIdNum) {
-      return forbiddenResponse();
-    }
-
-    return NextResponse.json({
-      success: true,
-      product
-    });
-
+    return NextResponse.json({ success: true, product });
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(
@@ -66,10 +34,6 @@ export async function GET(
   }
 }
 
-/**
- * PUT /api/company/[companyId]/products/[productId]
- * Updates a product
- */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ companyId: string; productId: string }> }
@@ -79,21 +43,8 @@ export async function PUT(
     const companyIdNum = parseInt(companyId);
     const productIdNum = parseInt(productId);
 
-    // Auth check
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return unauthorizedResponse();
-    }
-
-    // Verify user has access to this company
-    const hasAccess = await verifyCompanyAccess(userId, companyIdNum);
-    if (!hasAccess) {
-      return forbiddenResponse();
-    }
-
-    // Check if product exists and belongs to this company
-    const existingProduct = await prisma.products.findUnique({
-      where: { id: productIdNum }
+    const existingProduct = await prisma.products.findFirst({
+      where: { id: productIdNum, company_id: companyIdNum }
     });
 
     if (!existingProduct) {
@@ -103,67 +54,38 @@ export async function PUT(
       );
     }
 
-    if (existingProduct.company_id !== companyIdNum) {
-      return forbiddenResponse();
-    }
-
-    // Parse request body
     const body = await request.json();
-    const {
-      name,
-      code,
-      sku,
-      description,
-      unit,
-      price,
-      cost_price,
-      currency,
-      vat_rate,
-      category,
-      subcategory,
-      min_stock,
-      current_stock,
-      is_active,
-      is_service
-    } = body;
 
-    // Update product
+    const updateData: any = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.code !== undefined) updateData.code = body.code;
+    if (body.description !== undefined) updateData.description = body.description || null;
+    if (body.unit !== undefined) updateData.unit = body.unit;
+    if (body.price !== undefined) updateData.price = parseFloat(body.price);
+    if (body.cost_price !== undefined) updateData.cost_price = body.cost_price ? parseFloat(body.cost_price) : null;
+    if (body.currency !== undefined) updateData.currency = body.currency;
+    if (body.vat_rate !== undefined) updateData.vat_rate = body.vat_rate ? parseFloat(body.vat_rate) : null;
+    if (body.category !== undefined) updateData.category = body.category || null;
+    if (body.subcategory !== undefined) updateData.subcategory = body.subcategory || null;
+    if (body.min_stock !== undefined) updateData.min_stock = body.min_stock ? parseFloat(body.min_stock) : null;
+    if (body.current_stock !== undefined) updateData.current_stock = body.current_stock ? parseFloat(body.current_stock) : null;
+    if (body.is_active !== undefined) updateData.is_active = body.is_active;
+    if (body.is_service !== undefined) updateData.is_service = body.is_service;
+
     const product = await prisma.products.update({
-      where: {
-        id: productIdNum
-      },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(code !== undefined && { code }),
-        ...(sku !== undefined && { sku: sku || null }),
-        ...(description !== undefined && { description: description || null }),
-        ...(unit !== undefined && { unit }),
-        ...(price !== undefined && { price: parseFloat(price) }),
-        ...(cost_price !== undefined && { cost_price: cost_price ? parseFloat(cost_price) : null }),
-        ...(currency !== undefined && { currency }),
-        ...(vat_rate !== undefined && { vat_rate: vat_rate ? parseFloat(vat_rate) : null }),
-        ...(category !== undefined && { category: category || null }),
-        ...(subcategory !== undefined && { subcategory: subcategory || null }),
-        ...(min_stock !== undefined && { min_stock: min_stock ? parseFloat(min_stock) : null }),
-        ...(current_stock !== undefined && { current_stock: current_stock ? parseFloat(current_stock) : null }),
-        ...(is_active !== undefined && { is_active }),
-        ...(is_service !== undefined && { is_service })
-      }
+      where: { id: productIdNum },
+      data: updateData
     });
 
-    return NextResponse.json({
-      success: true,
-      product
-    });
-
+    return NextResponse.json({ success: true, product });
   } catch (error: any) {
     console.error('Error updating product:', error);
-
-    // Handle unique constraint violation
     if (error.code === 'P2002') {
-      return badRequestResponse('Product code already exists in this company');
+      return NextResponse.json(
+        { success: false, error: 'Product code already exists' },
+        { status: 400 }
+      );
     }
-
     return NextResponse.json(
       { success: false, error: 'Failed to update product' },
       { status: 500 }
@@ -171,12 +93,8 @@ export async function PUT(
   }
 }
 
-/**
- * DELETE /api/company/[companyId]/products/[productId]
- * Deletes a product
- */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ companyId: string; productId: string }> }
 ) {
   try {
@@ -184,21 +102,8 @@ export async function DELETE(
     const companyIdNum = parseInt(companyId);
     const productIdNum = parseInt(productId);
 
-    // Auth check
-    const userId = await getUserIdFromToken(request);
-    if (!userId) {
-      return unauthorizedResponse();
-    }
-
-    // Verify user has access to this company
-    const hasAccess = await verifyCompanyAccess(userId, companyIdNum);
-    if (!hasAccess) {
-      return forbiddenResponse();
-    }
-
-    // Check if product exists and belongs to this company
-    const existingProduct = await prisma.products.findUnique({
-      where: { id: productIdNum }
+    const existingProduct = await prisma.products.findFirst({
+      where: { id: productIdNum, company_id: companyIdNum }
     });
 
     if (!existingProduct) {
@@ -208,29 +113,19 @@ export async function DELETE(
       );
     }
 
-    if (existingProduct.company_id !== companyIdNum) {
-      return forbiddenResponse();
-    }
-
-    // Delete product
     await prisma.products.delete({
-      where: {
-        id: productIdNum
-      }
+      where: { id: productIdNum }
     });
 
-    return NextResponse.json({
-      success: true
-    });
-
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error deleting product:', error);
-
-    // Handle foreign key constraint violations
     if (error.code === 'P2003' || error.code === 'P2014') {
-      return badRequestResponse('Cannot delete product - it is referenced by other records');
+      return NextResponse.json(
+        { success: false, error: 'Cannot delete - product is referenced by other records' },
+        { status: 400 }
+      );
     }
-
     return NextResponse.json(
       { success: false, error: 'Failed to delete product' },
       { status: 500 }
