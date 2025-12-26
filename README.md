@@ -149,3 +149,5 @@ DELETE /api/company/{companyId}/products/{productId}  - Delete product
 - Claude (AI Engineer)
 
 *"Космический корабль с заправленными баками!"* 🚀
+
+git commit -m "HOTFIX: useEffect return value"
