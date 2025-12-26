@@ -1,6 +1,6 @@
 // src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
-// Sprint 1.2 v7 — Professional Clients Page
-// SIMPLE: Toolbar = 100% width (never overflows), Table = separate scrollable container
+// Sprint 1.2 v8 — Table CANNOT stretch page
+// KEY: Main wrapper has overflow-x:hidden, table stays inside
 
 'use client';
 
@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 
 // ============================================
-// TYPE DEFINITIONS
+// TYPES
 // ============================================
 
 interface Client {
@@ -77,7 +77,7 @@ interface Client {
 }
 
 // ============================================
-// HELPER COMPONENTS
+// HELPERS
 // ============================================
 
 function RoleBadge({ role }: { role: string }) {
@@ -86,21 +86,12 @@ function RoleBadge({ role }: { role: string }) {
     SUPPLIER: 'bg-blue-100 text-blue-700 border-blue-200',
     BOTH: 'bg-purple-100 text-purple-700 border-purple-200',
   };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[role] || 'bg-gray-100 text-gray-700'}`}>
-      {role}
-    </span>
-  );
+  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[role] || 'bg-gray-100 text-gray-700'}`}>{role}</span>;
 }
 
 function StatusIndicator({ active }: { active: boolean }) {
-  return (
-    <div className="flex items-center gap-1">
-      <span className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-green-500' : 'bg-red-400'}`} />
-      <span className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-green-500' : 'bg-red-400'}`} />
-      <span className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-green-500' : 'bg-red-400'}`} />
-    </div>
-  );
+  const c = active ? 'bg-green-500' : 'bg-red-400';
+  return <div className="flex items-center gap-1"><span className={`w-2.5 h-2.5 rounded-full ${c}`} /><span className={`w-2.5 h-2.5 rounded-full ${c}`} /><span className={`w-2.5 h-2.5 rounded-full ${c}`} /></div>;
 }
 
 function BooleanIndicator({ value }: { value: boolean }) {
@@ -110,58 +101,35 @@ function BooleanIndicator({ value }: { value: boolean }) {
 function renderCell(client: Client, column: ColumnConfig): React.ReactNode {
   const value = client[column.key];
   if (value === null || value === undefined) return <span className="text-gray-300">-</span>;
-
   switch (column.type) {
-    case 'boolean':
-      return column.key === 'is_active' ? <StatusIndicator active={!!value} /> : <BooleanIndicator value={!!value} />;
-    case 'enum':
-      return column.key === 'role' ? <RoleBadge role={String(value)} /> : <span>{String(value)}</span>;
-    case 'date':
-      try {
-        return <span>{new Date(String(value)).toLocaleDateString('ru-RU')}</span>;
-      } catch {
-        return <span>{String(value)}</span>;
-      }
-    case 'number':
-      return <span>{Number(value).toLocaleString()}</span>;
-    case 'currency':
-      return <span className="font-mono">{String(value)}</span>;
-    default:
-      const str = String(value);
-      return str.length > 40 ? <span title={str}>{str.substring(0, 37)}...</span> : <span>{str}</span>;
+    case 'boolean': return column.key === 'is_active' ? <StatusIndicator active={!!value} /> : <BooleanIndicator value={!!value} />;
+    case 'enum': return column.key === 'role' ? <RoleBadge role={String(value)} /> : <span>{String(value)}</span>;
+    case 'date': try { return <span>{new Date(String(value)).toLocaleDateString('ru-RU')}</span>; } catch { return <span>{String(value)}</span>; }
+    case 'number': return <span>{Number(value).toLocaleString()}</span>;
+    case 'currency': return <span className="font-mono">{String(value)}</span>;
+    default: const s = String(value); return s.length > 40 ? <span title={s}>{s.substring(0,37)}...</span> : <span>{s}</span>;
   }
 }
 
 function FilterInput({ column, value, onChange }: { column: ColumnConfig; value: string; onChange: (v: string) => void }) {
   if (column.type === 'enum' && column.enumOptions) {
-    return (
-      <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 bg-white">
-        <option value="">Все</option>
-        {column.enumOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
-    );
+    return <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded bg-white"><option value="">Все</option>{column.enumOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>;
   }
   if (column.type === 'boolean') {
-    return (
-      <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 bg-white">
-        <option value="">Все</option>
-        <option value="true">Да</option>
-        <option value="false">Нет</option>
-      </select>
-    );
+    return <select value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded bg-white"><option value="">Все</option><option value="true">Да</option><option value="false">Нет</option></select>;
   }
-  return <input type="text" placeholder="Поиск..." value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-teal-500" />;
+  return <input type="text" placeholder="Поиск..." value={value} onChange={e => onChange(e.target.value)} className="w-full px-2 py-1 text-xs border border-gray-200 rounded" />;
 }
 
 // ============================================
-// MAIN COMPONENT
+// MAIN
 // ============================================
 
 export default function ClientsPage() {
   const params = useParams();
   const router = useRouter();
   const companyId = params.companyId as string;
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,189 +142,125 @@ export default function ClientsPage() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // Hydration fix
-  useEffect(() => {
-    setMounted(true);
-    const saved = loadGridConfig(companyId);
-    if (saved?.length) setVisibleColumns(saved);
-  }, [companyId]);
+  useEffect(() => { setMounted(true); const s = loadGridConfig(companyId); if (s?.length) setVisibleColumns(s); }, [companyId]);
 
-  // Scroll handlers
-  const updateScrollButtons = useCallback(() => {
-    const c = scrollContainerRef.current;
-    if (c) {
-      setCanScrollLeft(c.scrollLeft > 0);
-      setCanScrollRight(c.scrollLeft < c.scrollWidth - c.clientWidth - 1);
-    }
+  const updateScroll = useCallback(() => {
+    const c = scrollRef.current;
+    if (c) { setCanScrollLeft(c.scrollLeft > 0); setCanScrollRight(c.scrollLeft < c.scrollWidth - c.clientWidth - 1); }
   }, []);
 
-  const scrollLeft = () => scrollContainerRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
-  const scrollRight = () => scrollContainerRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
+  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+  const scrollRight = () => scrollRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
 
   useEffect(() => {
-    const c = scrollContainerRef.current;
-    if (!c) return;
-    c.addEventListener('scroll', updateScrollButtons);
-    const timer = setTimeout(updateScrollButtons, 100);
-    return () => { c.removeEventListener('scroll', updateScrollButtons); clearTimeout(timer); };
-  }, [updateScrollButtons, clients, visibleColumns]);
+    const c = scrollRef.current; if (!c) return;
+    c.addEventListener('scroll', updateScroll);
+    setTimeout(updateScroll, 100);
+    return () => c.removeEventListener('scroll', updateScroll);
+  }, [updateScroll, clients, visibleColumns]);
 
-  // Fetch data
   const fetchClients = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    try { setLoading(true); setError(null);
       const res = await fetch(`/api/company/${companyId}/clients`, { credentials: 'include' });
       const data = await res.json();
-      if (data.success) setClients(data.clients);
-      else setError(data.error || 'Failed to fetch');
-    } catch (err) {
-      setError('Network error');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+      if (data.success) setClients(data.clients); else setError(data.error || 'Failed');
+    } catch { setError('Network error'); } finally { setLoading(false); }
   }, [companyId]);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
 
-  // Grid config
-  const handleSaveGridConfig = (cols: string[]) => { setVisibleColumns(cols); saveGridConfig(companyId, cols); };
-  const handleResetGridConfig = () => { const d = getDefaultVisibleColumns(); setVisibleColumns(d); resetGridConfig(companyId); };
+  const handleSave = (cols: string[]) => { setVisibleColumns(cols); saveGridConfig(companyId, cols); };
+  const handleReset = () => { const d = getDefaultVisibleColumns(); setVisibleColumns(d); resetGridConfig(companyId); };
 
-  // Filter
-  const filteredClients = useMemo(() => {
-    return clients.filter(client => {
-      for (const [key, fv] of Object.entries(filters)) {
-        if (!fv) continue;
-        const col = getColumnByKey(key);
-        if (!col) continue;
-        const cv = client[key];
-        if (col.type === 'boolean' && cv !== (fv === 'true')) return false;
-        if (col.type === 'enum' && String(cv) !== fv) return false;
-        if (cv && !String(cv).toLowerCase().includes(fv.toLowerCase())) return false;
-      }
-      return true;
-    });
-  }, [clients, filters]);
+  const filteredClients = useMemo(() => clients.filter(client => {
+    for (const [k, fv] of Object.entries(filters)) {
+      if (!fv) continue; const col = getColumnByKey(k); if (!col) continue; const cv = client[k];
+      if (col.type === 'boolean' && cv !== (fv === 'true')) return false;
+      if (col.type === 'enum' && String(cv) !== fv) return false;
+      if (cv && !String(cv).toLowerCase().includes(fv.toLowerCase())) return false;
+    }
+    return true;
+  }), [clients, filters]);
 
   const activeColumns = useMemo(() => CLIENTS_COLUMNS.filter(c => visibleColumns.includes(c.key)), [visibleColumns]);
-
-  // Selection
-  const toggleSelectAll = () => setSelectedIds(selectedIds.size === filteredClients.length ? new Set() : new Set(filteredClients.map(c => c.id)));
-  const toggleSelectRow = (id: number) => { const s = new Set(selectedIds); s.has(id) ? s.delete(id) : s.add(id); setSelectedIds(s); };
-
-  // Delete
+  const toggleAll = () => setSelectedIds(selectedIds.size === filteredClients.length ? new Set() : new Set(filteredClients.map(c => c.id)));
+  const toggleRow = (id: number) => { const s = new Set(selectedIds); s.has(id) ? s.delete(id) : s.add(id); setSelectedIds(s); };
   const handleDelete = async (id: number) => {
-    if (!confirm('Удалить клиента?')) return;
-    try {
-      const res = await fetch(`/api/company/${companyId}/clients/${id}`, { method: 'DELETE', credentials: 'include' });
-      const data = await res.json();
-      if (data.success) fetchClients();
-      else alert(data.error || 'Failed');
-    } catch { alert('Network error'); }
+    if (!confirm('Удалить?')) return;
+    try { const res = await fetch(`/api/company/${companyId}/clients/${id}`, { method: 'DELETE', credentials: 'include' });
+      if ((await res.json()).success) fetchClients(); else alert('Failed');
+    } catch { alert('Error'); }
   };
 
   // ============================================
   // RENDER
   // ============================================
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    // ГЛАВНЫЙ КОНТЕЙНЕР - overflow-x:hidden не даёт таблице растянуть страницу!
+    <div className="p-6 bg-gray-50 min-h-screen overflow-x-hidden">
+      
       {/* ============================================ */}
-      {/* BLOCK 1: HEADER - 100% width */}
+      {/* BLOCK 1: HEADER - max-width: 100% */}
       {/* ============================================ */}
-      <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-t-xl px-6 py-4 shadow-lg">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-t-xl px-6 py-4 shadow-lg max-w-full">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-white">Клиенты</h1>
-          <span className="px-2.5 py-1 bg-white/20 rounded-full text-sm text-white">
-            {filteredClients.length} из {clients.length}
-          </span>
-          <span className="px-3 py-1 bg-orange-500 rounded-full text-sm font-medium text-white">
-            Company ID: {companyId}
-          </span>
+          <span className="px-2.5 py-1 bg-white/20 rounded-full text-sm text-white">{filteredClients.length} из {clients.length}</span>
+          <span className="px-3 py-1 bg-orange-500 rounded-full text-sm font-medium text-white">Company ID: {companyId}</span>
         </div>
       </div>
 
       {/* ============================================ */}
-      {/* BLOCK 2: TOOLBAR - 100% width, never overflows */}
-      {/* All buttons fit within page width */}
+      {/* BLOCK 2: TOOLBAR - max-width: 100% */}
       {/* ============================================ */}
-      <div className="bg-white border-x border-b border-gray-200 px-4 py-3">
+      <div className="bg-white border-x border-b border-gray-200 px-4 py-3 max-w-full">
         <div className="flex items-center justify-between gap-2">
-          {/* Left actions */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push(`/company/${companyId}/clients/new`)}
-              className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Добавить нового клиента</span>
-              <span className="sm:hidden">Добавить</span>
+            <button onClick={() => router.push(`/company/${companyId}/clients/new`)} className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm font-medium">
+              <Plus className="w-4 h-4" /><span className="hidden sm:inline">Добавить нового клиента</span><span className="sm:hidden">+</span>
             </button>
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Редактировать"><Pencil className="w-4 h-4" /></button>
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Удалить"><Trash2 className="w-4 h-4" /></button>
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Копировать"><Copy className="w-4 h-4" /></button>
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><Pencil className="w-4 h-4" /></button>
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><Copy className="w-4 h-4" /></button>
           </div>
-
-          {/* Pagination */}
-          <div className="hidden sm:flex items-center gap-1 text-gray-500">
-            <ChevronLeft className="w-4 h-4" />
-            <span className="text-xs">1 / 1</span>
-            <ChevronRight className="w-4 h-4" />
-          </div>
-
-          {/* Right controls - scroll, export, refresh, settings */}
+          <div className="hidden sm:flex items-center gap-1 text-gray-400"><ChevronLeft className="w-4 h-4" /><span className="text-xs">1/1</span><ChevronRight className="w-4 h-4" /></div>
           <div className="flex items-center gap-1">
-            <button onClick={scrollLeft} disabled={!canScrollLeft} className={`p-2 rounded-lg ${canScrollLeft ? 'text-gray-500 hover:bg-gray-100' : 'text-gray-300'}`} title="◄ Влево">
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button onClick={scrollRight} disabled={!canScrollRight} className={`p-2 rounded-lg ${canScrollRight ? 'text-gray-500 hover:bg-gray-100' : 'text-gray-300'}`} title="► Вправо">
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <button onClick={scrollLeft} disabled={!canScrollLeft} className={`p-2 rounded-lg ${canScrollLeft ? 'text-gray-500 hover:bg-gray-100' : 'text-gray-300'}`}><ChevronLeft className="w-5 h-5" /></button>
+            <button onClick={scrollRight} disabled={!canScrollRight} className={`p-2 rounded-lg ${canScrollRight ? 'text-gray-500 hover:bg-gray-100' : 'text-gray-300'}`}><ChevronRight className="w-5 h-5" /></button>
             <div className="w-px h-5 bg-gray-200 mx-1" />
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Экспорт"><Download className="w-5 h-5" /></button>
-            <button onClick={fetchClients} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Обновить"><RefreshCw className="w-5 h-5" /></button>
-            <button onClick={() => setIsGridConfigOpen(true)} className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg" title="Настройка колонок">
-              <Settings2 className="w-5 h-5" />
-            </button>
+            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><Download className="w-5 h-5" /></button>
+            <button onClick={fetchClients} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><RefreshCw className="w-5 h-5" /></button>
+            <button onClick={() => setIsGridConfigOpen(true)} className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg"><Settings2 className="w-5 h-5" /></button>
           </div>
         </div>
       </div>
 
       {/* ============================================ */}
-      {/* BLOCK 3: TABLE - separate container with horizontal scroll */}
+      {/* BLOCK 3: TABLE - overflow:hidden container */}
+      {/* Таблица ВНУТРИ, не растягивает страницу */}
       {/* ============================================ */}
-      <div className="bg-white border border-t-0 border-gray-200 rounded-b-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-t-0 border-gray-200 rounded-b-xl shadow-sm overflow-hidden max-w-full">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
-            <span className="ml-3 text-gray-500">Загрузка...</span>
-          </div>
+          <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-teal-500" /><span className="ml-3 text-gray-500">Загрузка...</span></div>
         ) : error ? (
-          <div className="text-center py-20 text-red-500">
-            <X className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>{error}</p>
-            <button onClick={fetchClients} className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg">Повторить</button>
-          </div>
+          <div className="text-center py-20 text-red-500"><X className="w-12 h-12 mx-auto mb-2 opacity-50" /><p>{error}</p><button onClick={fetchClients} className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg">Повторить</button></div>
         ) : (
-          <div ref={scrollContainerRef} className="overflow-x-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-            <table className="w-full border-collapse min-w-max">
+          <div ref={scrollRef} className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+            <table className="border-collapse" style={{ minWidth: `${activeColumns.length * 120 + 150}px` }}>
               <thead className="sticky top-0 z-10">
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="sticky left-0 z-20 w-12 px-3 py-3 bg-gray-50 border-r border-gray-200">
-                    <input type="checkbox" checked={selectedIds.size === filteredClients.length && filteredClients.length > 0} onChange={toggleSelectAll} className="w-4 h-4 text-teal-500 rounded" />
+                    <input type="checkbox" checked={selectedIds.size === filteredClients.length && filteredClients.length > 0} onChange={toggleAll} className="w-4 h-4 rounded" />
                   </th>
-                  {activeColumns.map((col, idx) => (
-                    <th key={col.key} className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap bg-gray-50 ${idx === 0 ? 'sticky left-12 z-20' : ''}`} style={{ minWidth: col.width }}>
-                      {col.label}
-                    </th>
+                  {activeColumns.map((col, i) => (
+                    <th key={col.key} className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap bg-gray-50 ${i === 0 ? 'sticky left-12 z-20' : ''}`} style={{ minWidth: col.width }}>{col.label}</th>
                   ))}
                   <th className="sticky right-0 z-20 px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase bg-gray-50 border-l border-gray-200">Действия</th>
                 </tr>
                 <tr className="bg-white border-b border-gray-100">
                   <th className="sticky left-0 z-20 px-3 py-2 bg-white border-r border-gray-200" />
-                  {activeColumns.map((col, idx) => (
-                    <th key={`f-${col.key}`} className={`px-3 py-2 bg-white ${idx === 0 ? 'sticky left-12 z-20' : ''}`}>
+                  {activeColumns.map((col, i) => (
+                    <th key={`f-${col.key}`} className={`px-3 py-2 bg-white ${i === 0 ? 'sticky left-12 z-20' : ''}`}>
                       {col.filterable && <FilterInput column={col} value={filters[col.key] || ''} onChange={v => setFilters(p => ({ ...p, [col.key]: v }))} />}
                     </th>
                   ))}
@@ -367,24 +271,22 @@ export default function ClientsPage() {
                 {filteredClients.map(client => (
                   <tr key={client.id} className={`hover:bg-gray-50 ${selectedIds.has(client.id) ? 'bg-teal-50' : ''}`}>
                     <td className={`sticky left-0 z-10 px-3 py-3 border-r border-gray-100 ${selectedIds.has(client.id) ? 'bg-teal-50' : 'bg-white'}`}>
-                      <input type="checkbox" checked={selectedIds.has(client.id)} onChange={() => toggleSelectRow(client.id)} className="w-4 h-4 text-teal-500 rounded" />
+                      <input type="checkbox" checked={selectedIds.has(client.id)} onChange={() => toggleRow(client.id)} className="w-4 h-4 rounded" />
                     </td>
-                    {activeColumns.map((col, idx) => (
-                      <td key={`${client.id}-${col.key}`} className={`px-3 py-3 text-sm text-gray-700 whitespace-nowrap ${idx === 0 ? 'sticky left-12 z-10 font-medium' : ''} ${selectedIds.has(client.id) ? 'bg-teal-50' : idx === 0 ? 'bg-white' : ''}`}>
+                    {activeColumns.map((col, i) => (
+                      <td key={`${client.id}-${col.key}`} className={`px-3 py-3 text-sm text-gray-700 whitespace-nowrap ${i === 0 ? 'sticky left-12 z-10 font-medium' : ''} ${selectedIds.has(client.id) ? 'bg-teal-50' : i === 0 ? 'bg-white' : ''}`}>
                         {renderCell(client, col)}
                       </td>
                     ))}
                     <td className={`sticky right-0 z-10 px-3 py-3 border-l border-gray-100 ${selectedIds.has(client.id) ? 'bg-teal-50' : 'bg-white'}`}>
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => router.push(`/company/${companyId}/clients/${client.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Редактировать"><Pencil className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(client.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded" title="Удалить"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => router.push(`/company/${companyId}/clients/${client.id}/edit`)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"><Pencil className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(client.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {filteredClients.length === 0 && (
-                  <tr><td colSpan={activeColumns.length + 2} className="px-3 py-12 text-center text-gray-500"><Search className="w-12 h-12 mx-auto mb-2 opacity-30" /><p>Клиенты не найдены</p></td></tr>
-                )}
+                {filteredClients.length === 0 && <tr><td colSpan={activeColumns.length + 2} className="px-3 py-12 text-center text-gray-500"><Search className="w-12 h-12 mx-auto mb-2 opacity-30" /><p>Клиенты не найдены</p></td></tr>}
               </tbody>
             </table>
           </div>
@@ -395,8 +297,7 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Grid Config Modal */}
-      <GridConfigModal isOpen={isGridConfigOpen} onClose={() => setIsGridConfigOpen(false)} visibleColumns={visibleColumns} onSave={handleSaveGridConfig} onReset={handleResetGridConfig} />
+      <GridConfigModal isOpen={isGridConfigOpen} onClose={() => setIsGridConfigOpen(false)} visibleColumns={visibleColumns} onSave={handleSave} onReset={handleReset} />
     </div>
   );
 }
