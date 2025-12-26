@@ -1,13 +1,13 @@
 // src/components/clients/GridConfigModal.tsx
 // Sprint 1.2 — Grid Config Modal (Site.pro-style)
+// FIXED: Removed all unused imports
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   CLIENTS_COLUMNS,
   getDefaultVisibleColumns,
-  ColumnConfig,
 } from '@/config/clients/columnsConfig';
 import { X, Search, Settings2, RotateCcw, Check, CheckSquare, Square } from 'lucide-react';
 
@@ -38,16 +38,14 @@ export default function GridConfigModal({
   }, [isOpen, visibleColumns]);
 
   // Filter columns by search
-  const filteredColumns = useMemo(() => {
-    if (!searchQuery.trim()) return CLIENTS_COLUMNS;
-    const query = searchQuery.toLowerCase();
-    return CLIENTS_COLUMNS.filter(
-      col =>
-        col.label.toLowerCase().includes(query) ||
-        col.labelEn.toLowerCase().includes(query) ||
-        col.key.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+  const filteredColumns = searchQuery.trim()
+    ? CLIENTS_COLUMNS.filter(
+        col =>
+          col.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          col.labelEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          col.key.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : CLIENTS_COLUMNS;
 
   // Toggle single column
   const toggleColumn = useCallback((key: string) => {
@@ -204,7 +202,7 @@ export default function GridConfigModal({
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            Reset grid&apos;s config, columns, filters, pagination
+            Reset grid config
           </button>
 
           <div className="flex gap-3">

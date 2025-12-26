@@ -1,6 +1,6 @@
 // src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
 // Sprint 1.2 — Professional Clients Page with Horizontal Scroll (Site.pro-level)
-// FIXED: Hydration error - localStorage loaded after mount
+// FIXED: Hydration error, unused imports
 
 'use client';
 
@@ -450,7 +450,7 @@ export default function ClientsPage() {
       } else {
         alert(data.error || 'Failed to delete');
       }
-    } catch (err) {
+    } catch {
       alert('Network error');
     }
   };
