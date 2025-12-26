@@ -1,6 +1,6 @@
 // src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
-// Sprint 1.2 — Professional Clients Page with Horizontal Scroll (Site.pro-level)
-// FIXED: Hydration error, unused imports, useEffect return
+// Sprint 1.2 v4 — Professional Clients Page with FIXED Toolbar (Site.pro-level)
+// FIXED: Toolbar with ⚙️ Grid Config is ALWAYS visible, independent of table scroll
 
 'use client';
 
@@ -28,6 +28,9 @@ import {
   Check,
   X,
   Loader2,
+  Download,
+  Upload,
+  Filter,
 } from 'lucide-react';
 
 // ============================================
@@ -132,12 +135,10 @@ function BooleanIndicator({ value }: { value: boolean }) {
 function renderCell(client: Client, column: ColumnConfig): React.ReactNode {
   const value = client[column.key];
 
-  // Handle null/undefined
   if (value === null || value === undefined) {
     return <span className="text-gray-300">-</span>;
   }
 
-  // Render by type
   switch (column.type) {
     case 'boolean':
       if (column.key === 'is_active') {
@@ -178,7 +179,6 @@ function renderCell(client: Client, column: ColumnConfig): React.ReactNode {
       return <span className="font-mono">{String(value)}</span>;
 
     default:
-      // Truncate long strings
       const strValue = String(value);
       if (strValue.length > 40) {
         return (
@@ -260,7 +260,7 @@ export default function ClientsPage() {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
-  // Grid config state - ALWAYS start with defaults for SSR
+  // Grid config state
   const [visibleColumns, setVisibleColumns] = useState<string[]>(getDefaultVisibleColumns);
   const [isGridConfigOpen, setIsGridConfigOpen] = useState(false);
 
@@ -275,7 +275,7 @@ export default function ClientsPage() {
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   // ============================================
-  // HYDRATION FIX - Load localStorage AFTER mount
+  // HYDRATION FIX
   // ============================================
   useEffect(() => {
     setMounted(true);
@@ -313,11 +313,10 @@ export default function ClientsPage() {
     }
   };
 
-  // FIXED: Always return cleanup function
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) {
-      return; // Early return - no cleanup needed
+      return;
     }
     
     container.addEventListener('scroll', updateScrollButtons);
@@ -393,7 +392,6 @@ export default function ClientsPage() {
         } else if (column.type === 'enum') {
           if (String(cellValue) !== filterValue) return false;
         } else {
-          // String search
           if (
             cellValue &&
             !String(cellValue).toLowerCase().includes(filterValue.toLowerCase())
@@ -464,7 +462,9 @@ export default function ClientsPage() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
+      {/* ============================================ */}
+      {/* HEADER - ALWAYS VISIBLE, NEVER SCROLLS */}
+      {/* ============================================ */}
       <div className="bg-gradient-to-r from-teal-600 to-teal-500 rounded-t-xl px-6 py-4 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -479,8 +479,12 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="bg-white border-x border-gray-200 px-4 py-3 flex items-center justify-between">
+      {/* ============================================ */}
+      {/* TOOLBAR - FIXED, INDEPENDENT OF TABLE SCROLL */}
+      {/* ⚙️ Grid Config ALWAYS accessible here! */}
+      {/* ============================================ */}
+      <div className="bg-white border-x border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        {/* LEFT SIDE - Action buttons */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push(`/company/${companyId}/clients/new`)}
@@ -491,18 +495,35 @@ export default function ClientsPage() {
           </button>
 
           {/* Bulk actions */}
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <Pencil className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <Copy className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 ml-2 pl-2 border-l border-gray-200">
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Редактировать"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Удалить"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Копировать"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* RIGHT SIDE - Scroll controls + Grid Config */}
+        <div className="flex items-center gap-1">
+          {/* Pagination placeholder */}
+          <span className="text-xs text-gray-400 mr-2">
+            1 / 1
+          </span>
+          
           {/* Scroll buttons */}
           <button
             onClick={scrollLeft}
@@ -529,10 +550,35 @@ export default function ClientsPage() {
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Grid Config Button */}
+          {/* Separator */}
+          <div className="w-px h-6 bg-gray-200 mx-1" />
+
+          {/* Export/Import */}
+          <button 
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Экспорт"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+          <button 
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Импорт"
+          >
+            <Upload className="w-5 h-5" />
+          </button>
+
+          {/* Filter toggle */}
+          <button 
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Фильтры"
+          >
+            <Filter className="w-5 h-5" />
+          </button>
+
+          {/* ⚙️ GRID CONFIG - ALWAYS VISIBLE! */}
           <button
             onClick={() => setIsGridConfigOpen(true)}
-            className="flex items-center gap-2 p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+            className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
             title="Настройка колонок"
           >
             <Settings2 className="w-5 h-5" />
@@ -540,8 +586,10 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="bg-white border border-gray-200 rounded-b-xl shadow-sm overflow-hidden">
+      {/* ============================================ */}
+      {/* TABLE CONTAINER - SCROLLS INDEPENDENTLY */}
+      {/* ============================================ */}
+      <div className="bg-white border border-t-0 border-gray-200 rounded-b-xl shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
@@ -559,18 +607,19 @@ export default function ClientsPage() {
             </button>
           </div>
         ) : (
+          /* TABLE WITH HORIZONTAL SCROLL */
           <div
             ref={scrollContainerRef}
-            className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-            style={{ maxHeight: 'calc(100vh - 300px)' }}
+            className="overflow-x-auto"
+            style={{ maxHeight: 'calc(100vh - 280px)' }}
           >
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse min-w-max">
               {/* Table Header */}
-              <thead className="sticky top-0 z-20">
+              <thead className="sticky top-0 z-10">
                 {/* Column Headers */}
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {/* Sticky Checkbox Column */}
-                  <th className="sticky left-0 z-30 w-12 px-3 py-3 bg-gray-50 border-r border-gray-200">
+                  {/* Checkbox Column */}
+                  <th className="sticky left-0 z-20 w-12 px-3 py-3 bg-gray-50 border-r border-gray-200">
                     <input
                       type="checkbox"
                       checked={selectedIds.size === filteredClients.length && filteredClients.length > 0}
@@ -581,28 +630,27 @@ export default function ClientsPage() {
                   {activeColumns.map((col, idx) => (
                     <th
                       key={col.key}
-                      className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap border-r border-gray-100 last:border-r-0 ${
-                        idx === 0 ? 'sticky left-12 z-30 bg-gray-50' : 'bg-gray-50'
+                      className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap border-r border-gray-100 last:border-r-0 bg-gray-50 ${
+                        idx === 0 ? 'sticky left-12 z-20' : ''
                       }`}
                       style={{ minWidth: col.width }}
                     >
                       {col.label}
                     </th>
                   ))}
-                  <th className="sticky right-0 z-30 px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50 border-l border-gray-200">
+                  <th className="sticky right-0 z-20 px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50 border-l border-gray-200 min-w-[80px]">
                     Действия
                   </th>
                 </tr>
 
                 {/* Filter Row */}
                 <tr className="bg-white border-b border-gray-100">
-                  {/* Sticky Checkbox Column */}
-                  <th className="sticky left-0 z-30 px-3 py-2 bg-white border-r border-gray-200"></th>
+                  <th className="sticky left-0 z-20 px-3 py-2 bg-white border-r border-gray-200"></th>
                   {activeColumns.map((col, idx) => (
                     <th
                       key={`filter-${col.key}`}
-                      className={`px-3 py-2 border-r border-gray-100 last:border-r-0 ${
-                        idx === 0 ? 'sticky left-12 z-30 bg-white' : 'bg-white'
+                      className={`px-3 py-2 border-r border-gray-100 last:border-r-0 bg-white ${
+                        idx === 0 ? 'sticky left-12 z-20' : ''
                       }`}
                     >
                       {col.filterable && (
@@ -616,7 +664,7 @@ export default function ClientsPage() {
                       )}
                     </th>
                   ))}
-                  <th className="sticky right-0 z-30 px-3 py-2 bg-white border-l border-gray-200"></th>
+                  <th className="sticky right-0 z-20 px-3 py-2 bg-white border-l border-gray-200"></th>
                 </tr>
               </thead>
 
@@ -629,7 +677,7 @@ export default function ClientsPage() {
                       selectedIds.has(client.id) ? 'bg-teal-50' : ''
                     }`}
                   >
-                    {/* Sticky Checkbox Column */}
+                    {/* Checkbox Column */}
                     <td className={`sticky left-0 z-10 px-3 py-3 border-r border-gray-100 ${
                       selectedIds.has(client.id) ? 'bg-teal-50' : 'bg-white'
                     }`}>
@@ -650,7 +698,7 @@ export default function ClientsPage() {
                         {renderCell(client, col)}
                       </td>
                     ))}
-                    {/* Sticky Actions Column */}
+                    {/* Actions Column */}
                     <td className={`sticky right-0 z-10 px-3 py-3 border-l border-gray-100 ${
                       selectedIds.has(client.id) ? 'bg-teal-50' : 'bg-white'
                     }`}>
