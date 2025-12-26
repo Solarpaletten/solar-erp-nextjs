@@ -1,28 +1,34 @@
-# SPRINT 1.2: CLIENTS UI (Professional / Site.pro-level)
+# SPRINT 1.2 v2: CLIENTS UI + HORIZONTAL SCROLL + API
 
-> **Версия:** 1.0  
+> **Версия:** 2.0  
 > **Дата:** 2024-12-26  
 > **Статус:** ✅ Ready for Installation
 
 ---
 
-## 🎯 ЦЕЛЬ
+## 🎯 ЧТО ДОБАВЛЕНО В v2
 
-Профессиональная таблица Clients с Grid Config (шестерёнка) как в Site.pro:
-- Все поля из Prisma доступны как колонки
-- Настройка видимости колонок через модальное окно
-- Сохранение конфигурации в localStorage
-- Simple mode (default) / Advanced mode
+1. **Горизонтальная прокрутка** — как в Site.pro
+2. **Sticky колонки:**
+   - ☑️ Checkbox слева (sticky)
+   - 📌 ID колонка (sticky)
+   - 🔧 Actions справа (sticky)
+3. **Кнопки прокрутки** — ◀ ▶ в toolbar
+4. **Полный API backend** — все 36 полей из Prisma
+5. **CSS для scrollbar** — кастомный стиль
 
 ---
 
-## 📁 СТРУКТУРА ФАЙЛОВ
+## 📁 СТРУКТУРА ФАЙЛОВ (6 файлов)
 
 ```
-sprint1.2/
+sprint1.2-v2/
 ├── columnsConfig.ts      → src/config/clients/columnsConfig.ts
 ├── GridConfigModal.tsx   → src/components/clients/GridConfigModal.tsx
-└── page.tsx              → src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
+├── page.tsx              → src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
+├── route.ts              → src/app/api/company/[companyId]/clients/route.ts
+├── clientId-route.ts     → src/app/api/company/[companyId]/clients/[clientId]/route.ts
+└── clients-table.css     → src/styles/clients-table.css (опционально)
 ```
 
 ---
@@ -34,30 +40,43 @@ sprint1.2/
 ```bash
 cd /path/to/solar-erp-nextjs
 
-# Создать директорию для конфигурации
+# Config
 mkdir -p src/config/clients
 
-# Создать директорию для компонентов
+# Components
 mkdir -p src/components/clients
+
+# Styles (опционально)
+mkdir -p src/styles
 ```
 
 ### Шаг 2: Скопировать файлы
 
 ```bash
-# 1. Конфигурация колонок
+# 1. Config
 cp columnsConfig.ts src/config/clients/columnsConfig.ts
 
-# 2. Модальное окно Grid Config
+# 2. Components
 cp GridConfigModal.tsx src/components/clients/GridConfigModal.tsx
 
-# 3. Обновить страницу clients (ЗАМЕНИТЬ существующий файл)
+# 3. Frontend page (ЗАМЕНИТЬ)
 cp page.tsx src/app/\(products\)/\(dashboard\)/company/\[companyId\]/clients/page.tsx
+
+# 4. Backend API - Collection (ЗАМЕНИТЬ)
+cp route.ts src/app/api/company/\[companyId\]/clients/route.ts
+
+# 5. Backend API - Item (ЗАМЕНИТЬ)
+cp clientId-route.ts src/app/api/company/\[companyId\]/clients/\[clientId\]/route.ts
+
+# 6. CSS (опционально)
+cp clients-table.css src/styles/clients-table.css
 ```
 
-### Шаг 3: Установить зависимости (если нет)
+### Шаг 3: Добавить CSS в layout (если используете)
 
-```bash
-npm install lucide-react
+```tsx
+// src/app/layout.tsx
+import '@/styles/clients-table.css';
 ```
 
 ### Шаг 4: Проверить сборку
@@ -68,159 +87,130 @@ npm run build
 
 ---
 
-## 📊 КОЛОНКИ (33 поля из Prisma)
+## 📊 ГОРИЗОНТАЛЬНАЯ ПРОКРУТКА
 
-### 🔑 Basic (Simple mode - default ON)
+### Sticky колонки (всегда видны):
 
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 1 | `id` | ID | number |
-| 2 | `name` | Название | string |
-| 3 | `abbreviation` | Сокращение | string |
-| 4 | `code` | Код | string |
-| 5 | `email` | Email | string |
-| 6 | `phone` | Телефон | string |
-| 7 | `role` | Роль | enum |
-| 8 | `currency` | Валюта | enum |
-| 9 | `is_active` | Активен | boolean |
+| Позиция | Колонка | Z-index |
+|---------|---------|---------|
+| LEFT | ☑️ Checkbox | z-30 |
+| LEFT | ID (первая data колонка) | z-30 |
+| RIGHT | 🔧 Actions | z-30 |
 
-### 📋 Registration (Advanced - default OFF)
+### Прокручиваемые колонки:
 
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 10 | `registration_date` | Дата регистрации | date |
-| 11 | `registration_number` | Рег. номер | string |
-| 12 | `business_license_code` | Бизнес лицензия | string |
-| 13 | `is_juridical` | Юр. лицо | boolean |
-| 14 | `date_of_birth` | Дата рождения | date |
+Все остальные колонки прокручиваются по горизонтали.
 
-### 💰 Tax (Advanced - default OFF)
+### Кнопки прокрутки:
 
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 15 | `vat_code` | НДС код | string |
-| 16 | `vat_rate` | Ставка НДС | number |
-| 17 | `foreign_taxpayer_code` | ИНН иностранца | string |
-| 18 | `is_foreigner` | Иностранец | boolean |
-| 19 | `country` | Страна | string |
+```
+[◀ Scroll Left] [▶ Scroll Right]
+```
 
-### 📍 Address (Advanced - default OFF)
-
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 20 | `legal_address` | Юр. адрес | string |
-| 21 | `actual_address` | Факт. адрес | string |
-
-### 📞 Contact (Advanced - default OFF)
-
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 22 | `fax` | Факс | string |
-| 23 | `website` | Сайт | string |
-| 24 | `contact_information` | Контакт. инфо | string |
-
-### 💵 Finance (Advanced - default OFF)
-
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 25 | `credit_sum` | Кредитный лимит | number |
-| 26 | `pay_per` | Оплата за | string |
-| 27 | `payment_terms` | Условия оплаты | string |
-| 28 | `automatic_debt_reminder` | Авто-напоминание | boolean |
-
-### 🚚 Logistics/ERP (Advanced - default OFF)
-
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 29 | `eori_code` | EORI код | string |
-| 30 | `sabis_customer_name` | SABIS имя | string |
-| 31 | `sabis_customer_code` | SABIS код | string |
-| 32 | `notes` | Примечания | string |
-| 33 | `additional_information` | Доп. информация | string |
-
-### ⚙️ System (Advanced - default OFF)
-
-| # | Поле | Label | Тип |
-|---|------|-------|-----|
-| 34 | `created_at` | Создан | date |
-| 35 | `updated_at` | Обновлён | date |
-| 36 | `created_by` | Создал | number |
+- Автоматически скрываются если прокрутка не нужна
+- Smooth scroll на 300px
 
 ---
 
-## 🎨 ФУНКЦИОНАЛ GRID CONFIG
+## 🔌 API ENDPOINTS
 
-### Модальное окно (⚙️)
+### Collection (route.ts)
 
-- **Search** — поиск по названию колонки
-- **Select all / Deselect all** — массовый выбор
-- **Checkbox grid** — 4 колонки с чекбоксами
-- **Default badge** — метка для колонок Simple mode
-- **Save** — сохранить конфигурацию
-- **Reset** — сбросить к default
-- **LocalStorage** — `clients:grid-config:{companyId}`
+| Method | URL | Описание |
+|--------|-----|----------|
+| `GET` | `/api/company/{id}/clients` | Список всех клиентов (36 полей) |
+| `POST` | `/api/company/{id}/clients` | Создать клиента |
 
-### Фильтры в таблице
+### Item (clientId-route.ts)
 
-| Тип колонки | Фильтр |
-|-------------|--------|
-| `string` | Text input |
-| `enum` | Select dropdown |
-| `boolean` | Select (Да/Нет) |
-| `number` | Text input |
-| `date` | Text input |
+| Method | URL | Описание |
+|--------|-----|----------|
+| `GET` | `/api/company/{id}/clients/{clientId}` | Один клиент + addresses + bank_accounts |
+| `PUT` | `/api/company/{id}/clients/{clientId}` | Обновить (36 полей) |
+| `DELETE` | `/api/company/{id}/clients/{clientId}` | Удалить (с проверкой ссылок) |
+
+---
+
+## 📋 ВСЕ ПОЛЯ В API (36)
+
+### Basic
+- id, name, abbreviation, code, email, phone, fax, website, contact_information
+
+### Role & Type
+- role, is_juridical, is_active, is_foreigner, country
+
+### Addresses
+- legal_address, actual_address
+
+### Registration
+- business_license_code, registration_number, registration_date, date_of_birth
+
+### Tax
+- vat_code, vat_rate, eori_code, foreign_taxpayer_code
+
+### Finance
+- credit_sum, pay_per, currency, payment_terms, automatic_debt_reminder
+
+### SABIS / ERP
+- sabis_customer_name, sabis_customer_code
+
+### Notes
+- additional_information, notes
+
+### System
+- created_by, created_at, updated_at
 
 ---
 
 ## ✅ ACCEPTANCE CRITERIA
 
-### Grid Config
+### Horizontal Scroll
+- [ ] Таблица прокручивается по горизонтали
+- [ ] Checkbox колонка sticky слева
+- [ ] ID колонка sticky слева
+- [ ] Actions колонка sticky справа
+- [ ] Кнопки ◀ ▶ работают
+- [ ] Scrollbar виден и стилизован
 
-- [ ] Кнопка ⚙️ открывает модальное окно
-- [ ] Все 36 колонок отображаются в модальном окне
-- [ ] Поиск по колонкам работает
-- [ ] Select all / Deselect all работает
-- [ ] Чекбоксы переключают видимость
+### API
+- [ ] GET возвращает все 36 полей
+- [ ] POST создаёт с любыми полями
+- [ ] PUT обновляет частично
+- [ ] DELETE проверяет references
+
+### Grid Config
+- [ ] ⚙️ открывает модальное окно
+- [ ] Все колонки в списке
 - [ ] Save сохраняет в localStorage
 - [ ] Reset восстанавливает defaults
-- [ ] Конфигурация сохраняется после перезагрузки
-
-### Таблица
-
-- [ ] Колонки отображаются согласно конфигурации
-- [ ] ID всегда первая колонка
-- [ ] Фильтры работают для каждого типа
-- [ ] Role отображается как badge
-- [ ] is_active отображается как статус-индикатор
-- [ ] Даты форматируются правильно
-- [ ] Длинные строки обрезаются
-
-### UX
-
-- [ ] Simple mode по умолчанию (9 колонок)
-- [ ] Advanced mode включается через Grid Config
-- [ ] Таблица не перегружена в default состоянии
-- [ ] Адаптивная ширина колонок
 
 ---
 
-## 🔗 СВЯЗАННЫЕ ДОКУМЕНТЫ
+## 🎨 ВИЗУАЛЬНЫЕ ЭЛЕМЕНТЫ
 
-- [SPRINT1-ARCHITECTURE-README.md](./SPRINT1-ARCHITECTURE-README.md) — Архитектура Clients
-- [SPRINT1.1-CLIENTS-IMPORT-MAPPING.md](./SPRINT1.1-CLIENTS-IMPORT-MAPPING.md) — Mapping импорта
-- [prisma/schema.prisma](../prisma/schema.prisma) — Prisma Schema
+### Role Badge
+- CLIENT → зелёный
+- SUPPLIER → синий
+- BOTH → фиолетовый
+
+### Status Indicator (is_active)
+- Active → ●●● зелёные
+- Inactive → ●●● красные
+
+### Boolean Fields
+- true → ✓ зелёный
+- false → - серый
 
 ---
 
 ## 🚀 ПОСЛЕ УСТАНОВКИ
 
-1. Запустить `npm run dev`
+1. `npm run dev`
 2. Открыть `/company/16/clients`
-3. Проверить базовый вид (9 колонок)
-4. Нажать ⚙️ и включить дополнительные колонки
-5. Сохранить и проверить что конфигурация сохранилась
-6. Перезагрузить страницу и проверить persistence
+3. Включить больше колонок через ⚙️
+4. Проверить горизонтальную прокрутку
+5. Проверить что checkbox и ID остаются на месте
 
 ---
 
-**Sprint 1.2 готов к установке!** 🎉
+**Sprint 1.2 v2 готов!** 🎉
