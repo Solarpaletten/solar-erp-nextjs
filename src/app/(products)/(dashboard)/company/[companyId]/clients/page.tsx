@@ -1,6 +1,6 @@
 // src/app/(products)/(dashboard)/company/[companyId]/clients/page.tsx
-// Sprint 1.2 v5 — Professional Clients Page
-// FIXED: Right toolbar buttons ALWAYS visible (sticky) even when window is narrowed
+// Sprint 1.2 v6 — Professional Clients Page
+// FIXED: Right toolbar buttons use flex-shrink-0, NEVER collapse
 
 'use client';
 
@@ -479,74 +479,60 @@ export default function ClientsPage() {
       </div>
 
       {/* ============================================ */}
-      {/* TOOLBAR - With STICKY right controls */}
-      {/* Like Site.pro: right buttons ALWAYS visible */}
+      {/* TOOLBAR - FLEX with shrink-0 right side */}
+      {/* Like Site.pro: right buttons NEVER collapse */}
       {/* ============================================ */}
-      <div className="bg-white border-x border-b border-gray-200 relative">
-        {/* Scrollable toolbar content */}
-        <div className="overflow-x-auto">
-          <div className="flex items-center justify-between px-4 py-3 min-w-max">
-            {/* LEFT SIDE - Action buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => router.push(`/company/${companyId}/clients/new`)}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Добавить нового клиента
-              </button>
+      <div className="bg-white border-x border-b border-gray-200 px-4 py-3 flex items-center gap-4">
+        {/* LEFT SIDE - Can shrink/overflow */}
+        <div className="flex items-center gap-2 min-w-0 overflow-x-auto flex-1">
+          <button
+            onClick={() => router.push(`/company/${companyId}/clients/new`)}
+            className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium whitespace-nowrap flex-shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            Добавить нового клиента
+          </button>
 
-              {/* Bulk actions */}
-              <div className="flex items-center gap-1 ml-2 pl-2 border-l border-gray-200">
-                <button 
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Редактировать"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button 
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Удалить"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                <button 
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Копировать"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
+          {/* Bulk actions */}
+          <div className="flex items-center gap-1 pl-2 border-l border-gray-200 flex-shrink-0">
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Редактировать"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Удалить"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button 
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Копировать"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
 
-              {/* Pagination in the middle */}
-              <div className="flex items-center gap-1 ml-4 pl-4 border-l border-gray-200">
-                <button
-                  disabled
-                  className="p-1 text-gray-300 cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs text-gray-500 mx-1">1 / 1</span>
-                <button
-                  disabled
-                  className="p-1 text-gray-300 cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Spacer to push right controls */}
-            <div className="flex-1 min-w-[100px]" />
+          {/* Pagination */}
+          <div className="flex items-center gap-1 pl-2 border-l border-gray-200 flex-shrink-0">
+            <button disabled className="p-1 text-gray-300 cursor-not-allowed">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-gray-500 mx-1 whitespace-nowrap">1 / 1</span>
+            <button disabled className="p-1 text-gray-300 cursor-not-allowed">
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
         {/* ============================================ */}
-        {/* RIGHT CONTROLS - ALWAYS VISIBLE (STICKY) */}
-        {/* This is the key fix! */}
+        {/* RIGHT SIDE - NEVER SHRINKS (flex-shrink-0) */}
+        {/* These buttons are ALWAYS visible! */}
         {/* ============================================ */}
-        <div className="absolute right-0 top-0 bottom-0 flex items-center gap-1 px-3 bg-white border-l border-gray-200 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]">
-          {/* Scroll buttons */}
+        <div className="flex items-center gap-1 pl-3 border-l border-gray-200 flex-shrink-0">
+          {/* Table scroll buttons */}
           <button
             onClick={scrollLeft}
             disabled={!canScrollLeft}
@@ -555,7 +541,7 @@ export default function ClientsPage() {
                 ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 : 'text-gray-300 cursor-not-allowed'
             }`}
-            title="Прокрутить влево"
+            title="Прокрутить таблицу влево"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -567,7 +553,7 @@ export default function ClientsPage() {
                 ? 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 : 'text-gray-300 cursor-not-allowed'
             }`}
-            title="Прокрутить вправо"
+            title="Прокрутить таблицу вправо"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -592,7 +578,7 @@ export default function ClientsPage() {
             <RefreshCw className="w-5 h-5" />
           </button>
 
-          {/* ⚙️ GRID CONFIG - ALWAYS VISIBLE! */}
+          {/* ⚙️ GRID CONFIG */}
           <button
             onClick={() => setIsGridConfigOpen(true)}
             className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
