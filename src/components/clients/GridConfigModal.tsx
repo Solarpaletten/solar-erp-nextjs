@@ -1,6 +1,5 @@
 // src/components/clients/GridConfigModal.tsx
-// Sprint 1.2 — Grid Config Modal (Site.pro-style)
-// FIXED: Removed all unused imports
+// Sprint 1.3 — Grid Config Modal (Site.pro-style) - FIXED
 
 'use client';
 
@@ -29,7 +28,6 @@ export default function GridConfigModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [localVisible, setLocalVisible] = useState<string[]>(visibleColumns);
 
-  // Reset local state when modal opens
   useEffect(() => {
     if (isOpen) {
       setLocalVisible(visibleColumns);
@@ -37,42 +35,35 @@ export default function GridConfigModal({
     }
   }, [isOpen, visibleColumns]);
 
-  // Filter columns by search
   const filteredColumns = searchQuery.trim()
     ? CLIENTS_COLUMNS.filter(
         col =>
           col.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          col.labelEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
           col.key.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : CLIENTS_COLUMNS;
 
-  // Toggle single column
   const toggleColumn = useCallback((key: string) => {
     setLocalVisible(prev =>
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
   }, []);
 
-  // Select all visible in search
   const selectAll = useCallback(() => {
     const allKeys = filteredColumns.map(c => c.key);
     setLocalVisible(prev => [...new Set([...prev, ...allKeys])]);
   }, [filteredColumns]);
 
-  // Deselect all visible in search
   const deselectAll = useCallback(() => {
     const allKeys = filteredColumns.map(c => c.key);
     setLocalVisible(prev => prev.filter(k => !allKeys.includes(k)));
   }, [filteredColumns]);
 
-  // Handle save
   const handleSave = () => {
     onSave(localVisible);
     onClose();
   };
 
-  // Handle reset
   const handleReset = () => {
     const defaults = getDefaultVisibleColumns();
     setLocalVisible(defaults);
@@ -83,13 +74,11 @@ export default function GridConfigModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative z-10 bg-white rounded-xl shadow-2xl w-[900px] max-h-[85vh] flex flex-col overflow-hidden border border-gray-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-teal-600 to-teal-500">
@@ -109,7 +98,6 @@ export default function GridConfigModal({
 
         {/* Search + Actions */}
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-          {/* Search Input */}
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -121,7 +109,6 @@ export default function GridConfigModal({
             />
           </div>
 
-          {/* Column Visibility Header */}
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-teal-600 flex items-center gap-2">
               <CheckSquare className="w-4 h-4" />
@@ -161,16 +148,10 @@ export default function GridConfigModal({
                 <span className="text-sm text-gray-700 group-hover:text-gray-900 truncate">
                   {col.label}
                 </span>
-                {col.defaultVisible && (
-                  <span className="ml-auto text-[10px] text-teal-500 font-medium">
-                    default
-                  </span>
-                )}
               </label>
             ))}
           </div>
 
-          {/* Empty state */}
           {filteredColumns.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Search className="w-12 h-12 mx-auto mb-2 opacity-30" />
@@ -204,7 +185,6 @@ export default function GridConfigModal({
             <RotateCcw className="w-4 h-4" />
             Reset grid config
           </button>
-
           <div className="flex gap-3">
             <button
               onClick={handleSave}

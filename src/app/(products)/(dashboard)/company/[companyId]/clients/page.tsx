@@ -189,7 +189,7 @@ export default function ClientsPage() {
   }), [clients, filters]);
 
   // PAGINATION LOGIC
-  const totalPages = Math.ceil(filteredClients.length / pageSize);
+  const totalPages = Math.ceil(filteredClients.length / pageSize) || 1;
   const paginatedClients = filteredClients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const activeColumns = useMemo(() => CLIENTS_COLUMNS.filter(c => visibleColumns.includes(c.key)), [visibleColumns]);
@@ -242,7 +242,7 @@ export default function ClientsPage() {
             <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"><Copy className="w-4 h-4" /></button>
           </div>
 
-          {/* PAGINATION CONTROLS (LEFT SIDE) */}
+          {/* PAGINATION CONTROLS (CENTER) */}
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
 
           {/* RIGHT SIDE CONTROLS */}
@@ -265,14 +265,14 @@ export default function ClientsPage() {
           <div className="text-center py-20 text-red-500"><X className="w-12 h-12 mx-auto mb-2 opacity-50" /><p>{error}</p><button onClick={fetchClients} className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-lg">Повторить</button></div>
         ) : (
           <div ref={scrollRef} className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-            <table className="border-collapse" style={{ minWidth: `${activeColumns.length * 120 + 150}px` }}>
+            <table className="w-max min-w-max border-collapse">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="sticky left-0 z-20 w-12 px-3 py-3 bg-gray-50 border-r border-gray-200">
                     <input type="checkbox" checked={selectedIds.size === paginatedClients.length && paginatedClients.length > 0} onChange={toggleAll} className="w-4 h-4 rounded" />
                   </th>
                   {activeColumns.map((col, i) => (
-                    <th key={col.key} className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap bg-gray-50 ${i === 0 ? 'sticky left-12 z-20' : ''}`} style={{ minWidth: col.width }}>{col.label}</th>
+                    <th key={col.key} className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase whitespace-nowrap bg-gray-50 ${i === 0 ? 'sticky left-12 z-20' : ''}`} style={{ width: col.width, minWidth: col.width }}>{col.label}</th>
                   ))}
                   <th className="sticky right-0 z-20 px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase bg-gray-50 border-l border-gray-200">Действия</th>
                 </tr>
@@ -293,7 +293,7 @@ export default function ClientsPage() {
                       <input type="checkbox" checked={selectedIds.has(client.id)} onChange={() => toggleRow(client.id)} className="w-4 h-4 rounded" />
                     </td>
                     {activeColumns.map((col, i) => (
-                      <td key={`${client.id}-${col.key}`} className={`px-3 py-3 text-sm text-gray-700 whitespace-nowrap ${i === 0 ? 'sticky left-12 z-10 font-medium' : ''} ${selectedIds.has(client.id) ? 'bg-teal-50' : i === 0 ? 'bg-white' : ''}`}>
+                      <td key={`${client.id}-${col.key}`} className={`px-3 py-3 text-sm text-gray-700 whitespace-nowrap ${i === 0 ? 'sticky left-12 z-10 font-medium' : ''} ${selectedIds.has(client.id) ? 'bg-teal-50' : i === 0 ? 'bg-white' : ''}`} style={{ width: col.width, minWidth: col.width }}>
                         {renderCell(client, col)}
                       </td>
                     ))}

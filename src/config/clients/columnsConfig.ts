@@ -1,4 +1,5 @@
 // src/config/clients/columnsConfig.ts
+// Sprint 1.3 — Updated columns order + SSR-safe localStorage
 
 export interface ColumnConfig {
   key: string;
