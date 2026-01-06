@@ -21,7 +21,7 @@ export async function GET(
     const companyIdNum = parseInt(companyId);
 
     // Auth check
-    const userId = await getUserIdFromToken(request);
+    const userId = await getUserIdFromToken();
     if (!userId) {
       return unauthorizedResponse();
     }
@@ -89,7 +89,7 @@ export async function POST(
     const companyIdNum = parseInt(companyId);
 
     // Auth check
-    const userId = await getUserIdFromToken(request);
+    const userId = await getUserIdFromToken();
     if (!userId) {
       return unauthorizedResponse();
     }

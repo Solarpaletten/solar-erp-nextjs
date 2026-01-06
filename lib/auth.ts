@@ -28,10 +28,10 @@ export async function getUserIdFromToken(): Promise<number | null> {
  */
 export async function verifyCompanyAccess(userId: number, companyId: number): Promise<boolean> {
   const access = await prisma.company_users.findFirst({
-    where: { 
-      user_id: userId, 
-      company_id: companyId, 
-      is_active: true 
+    where: {
+      user_id: userId,
+      company_id: companyId,
+      is_active: true
     },
   });
   return !!access;
@@ -43,13 +43,13 @@ export async function verifyCompanyAccess(userId: number, companyId: number): Pr
 export async function getUserFromToken() {
   const userId = await getUserIdFromToken();
   if (!userId) return null;
-  
+
   return prisma.users.findUnique({
     where: { id: userId },
     select: {
       id: true,
       email: true,
-      name: true,
+      username: true,  // ✅ Правильное поле
       role: true,
     },
   });
@@ -61,42 +61,42 @@ export async function getUserFromToken() {
 
 export function unauthorizedResponse(message: string = 'Unauthorized') {
   return NextResponse.json(
-    { success: false, error: message }, 
+    { success: false, error: message },
     { status: 401 }
   );
 }
 
 export function forbiddenResponse(message: string = 'Access denied') {
   return NextResponse.json(
-    { success: false, error: message }, 
+    { success: false, error: message },
     { status: 403 }
   );
 }
 
 export function badRequestResponse(message: string = 'Bad request') {
   return NextResponse.json(
-    { success: false, error: message }, 
+    { success: false, error: message },
     { status: 400 }
   );
 }
 
 export function notFoundResponse(message: string = 'Not found') {
   return NextResponse.json(
-    { success: false, error: message }, 
+    { success: false, error: message },
     { status: 404 }
   );
 }
 
 export function serverErrorResponse(message: string = 'Internal server error') {
   return NextResponse.json(
-    { success: false, error: message }, 
+    { success: false, error: message },
     { status: 500 }
   );
 }
 
 export function successResponse<T>(data: T, status: number = 200) {
   return NextResponse.json(
-    { success: true, ...data }, 
+    { success: true, ...data },
     { status }
   );
 }

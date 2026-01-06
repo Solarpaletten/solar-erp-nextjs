@@ -358,7 +358,7 @@ export default function ClientsPage() {
                       {col.filterable && col.type === 'enum' && col.enumOptions ? (
                         <select value={filters[col.key] || ''} onChange={e => setFilters(p => ({ ...p, [col.key]: e.target.value }))} className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 focus:border-teal-500 bg-white">
                           <option value="">Все</option>
-                          {col.enumOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                          {col.enumOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                       ) : col.filterable && col.type === 'boolean' ? (
                         <select value={filters[col.key] || ''} onChange={e => setFilters(p => ({ ...p, [col.key]: e.target.value }))} className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 focus:border-teal-500 bg-white">
