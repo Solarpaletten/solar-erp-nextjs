@@ -1,91 +1,102 @@
-// src/lib/rate-limit.ts
-import { NextRequest, NextResponse } from 'next/server';
+// lib/rate-limit.ts
+// Rate limiting utility for Solar ERP API
 
-interface RateLimitEntry {
+interface RateLimitRecord {
   count: number;
   resetTime: number;
 }
 
-// In-memory store for rate limiting
-const rateLimitStore = new Map<string, RateLimitEntry>();
-
-// Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key);
-    }
-  }
-}, 5 * 60 * 1000);
-
-export interface RateLimitConfig {
-  maxRequests: number;    // Max requests per window
-  windowMs: number;       // Time window in milliseconds
+interface RateLimitResult {
+  success: boolean;
+  remaining: number;
+  reset: number;
 }
 
-const DEFAULT_CONFIG: RateLimitConfig = {
-  maxRequests: 10,
-  windowMs: 60 * 1000  // 1 minute
-};
+// In-memory store (в production используйте Redis)
+const rateLimitMap = new Map<string, RateLimitRecord>();
 
 /**
- * Rate limiter middleware
- * @param request - NextRequest object
- * @param config - Rate limit configuration
- * @returns null if allowed, NextResponse if rate limited
+ * Проверка rate limit
+ * @param key - уникальный ключ (например, IP или userId)
+ * @param limit - максимум запросов за окно
+ * @param windowMs - окно времени в миллисекундах
  */
 export function rateLimit(
-  request: NextRequest,
-  config: RateLimitConfig = DEFAULT_CONFIG
-): NextResponse | null {
-  // Get IP address
-  const ip = request.headers.get('x-forwarded-for') || 
-             request.headers.get('x-real-ip') || 
-             'unknown';
-  
+  key: string,
+  limit: number = 10,
+  windowMs: number = 60000
+): RateLimitResult {
   const now = Date.now();
-  const key = `rate_limit:${ip}`;
-  
-  const entry = rateLimitStore.get(key);
-  
-  if (!entry) {
-    // First request from this IP
-    rateLimitStore.set(key, {
-      count: 1,
-      resetTime: now + config.windowMs
+  const record = rateLimitMap.get(key);
+
+  // Первый запрос или окно истекло
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(key, { 
+      count: 1, 
+      resetTime: now + windowMs 
     });
-    return null;
+    return { 
+      success: true, 
+      remaining: limit - 1, 
+      reset: now + windowMs 
+    };
   }
-  
-  if (now > entry.resetTime) {
-    // Window expired, reset
-    rateLimitStore.set(key, {
-      count: 1,
-      resetTime: now + config.windowMs
-    });
-    return null;
+
+  // Превышен лимит
+  if (record.count >= limit) {
+    return { 
+      success: false, 
+      remaining: 0, 
+      reset: record.resetTime 
+    };
   }
-  
-  if (entry.count >= config.maxRequests) {
-    // Rate limit exceeded
-    const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-    
-    return NextResponse.json({
-      success: false,
-      error: 'Too many requests. Please try again later.',
-      retryAfter
-    }, { 
-      status: 429,
-      headers: {
-        'Retry-After': retryAfter.toString()
+
+  // Увеличиваем счётчик
+  record.count++;
+  return { 
+    success: true, 
+    remaining: limit - record.count, 
+    reset: record.resetTime 
+  };
+}
+
+/**
+ * Rate limit для API роутов
+ */
+export function apiRateLimit(
+  ip: string,
+  limit: number = 100,
+  windowMs: number = 60000
+): RateLimitResult {
+  return rateLimit(`api:${ip}`, limit, windowMs);
+}
+
+/**
+ * Rate limit для аутентификации
+ */
+export function authRateLimit(
+  identifier: string,
+  limit: number = 5,
+  windowMs: number = 300000 // 5 минут
+): RateLimitResult {
+  return rateLimit(`auth:${identifier}`, limit, windowMs);
+}
+
+/**
+ * Сброс rate limit для ключа
+ */
+export function resetRateLimit(key: string): void {
+  rateLimitMap.delete(key);
+}
+
+// Очистка устаревших записей каждую минуту
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, record] of rateLimitMap.entries()) {
+      if (now > record.resetTime) {
+        rateLimitMap.delete(key);
       }
-    });
-  }
-  
-  // Increment counter
-  entry.count++;
-  rateLimitStore.set(key, entry);
-  
-  return null;
+    }
+  }, 60000);
 }
