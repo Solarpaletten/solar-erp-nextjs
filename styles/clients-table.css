@@ -1,0 +1,39 @@
+/* styles/clients-table.css */
+/* Стили для таблицы клиентов */
+
+.clients-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.clients-table th,
+.clients-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.clients-table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.clients-table tr:hover {
+  background-color: #f3f4f6;
+}
+
+.clients-table .sticky-col {
+  position: sticky;
+  background-color: white;
+}
+
+.clients-table .sticky-left {
+  left: 0;
+}
+
+.clients-table .sticky-right {
+  right: 0;
+}
